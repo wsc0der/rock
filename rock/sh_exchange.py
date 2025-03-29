@@ -7,8 +7,20 @@ import pandas as pd
 
 def get_delistings():
     """
-    SSE delistings.
-    https://www.sse.com.cn/assortment/stock/list/delisting/
+    Fetch delisting data from the Shanghai Stock Exchange (SSE).
+
+    This function retrieves delisting information from the SSE's official website
+    by making an HTTP GET request to the specified endpoint. The response is expected
+    to be in Excel format, which is then parsed into a Pandas DataFrame.
+
+    Endpoint: https://www.sse.com.cn/assortment/stock/list/delisting/
+
+    Returns:
+        pd.DataFrame: A DataFrame containing delisting data.
+
+    Raises:
+        ValueError: If the response's Content-Type is not expected".
+        requests.exceptions.RequestException: If the HTTP request fails (e.g., timeout, connection error).
     """
     headers = {
         "Accept": "*/*",
@@ -26,15 +38,10 @@ def get_delistings():
     response = requests.get(url, headers=headers, timeout=10)
     response.raise_for_status()
 
-    print(response.headers.get("Content-Type"))
-    print(response.headers.get("Content-Disposition"))
-
     # Check Content-Type
+    expect_type = "application/vnd.ms-excel"
     content_type = response.headers.get("Content-Type")
-    print(f"Content-Type: {content_type}")
+    if expect_type not in content_type:
+        raise ValueError(f"Unexpected Content-Type: {content_type}")
 
-    if "application/vnd.ms-excel" in content_type:
-        df = pd.read_excel(BytesIO(response.content))
-        print(df.head())
-
-    return response.content
+    return pd.read_excel(BytesIO(response.content))
