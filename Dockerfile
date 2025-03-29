@@ -1,9 +1,9 @@
-FROM python:3.13.1
+FROM python:3.13.2
 
 
 RUN apt update \
-    && apt upgrade \
-    && apt install sqlite3
+    && apt upgrade -y \
+    && apt install -y sqlite3
 
 COPY requirements.txt /tmp/
 RUN pip install --no-cache-dir -r /tmp/requirements.txt \
