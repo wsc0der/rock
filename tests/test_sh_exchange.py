@@ -11,17 +11,18 @@ class TestShExchange(unittest.TestCase):
 
     def test_get_stock_list(self) -> None:
         """Test function."""
-        normal_cases = [
+        valid_cases = [
             ('1', '2'),
             ('1,2', '2,3'),
             ('', ''),
             ([], []),
             ([1,2], [2]),
             ([exchange.StockType.A], [exchange.StockStatus.NORMAL]),
-            ([exchange.StockType.A], [exchange.StockStatus.NORMAL, exchange.StockStatus.ST])
+            ([exchange.StockType.A, exchange.StockType.KECHUANG],
+             [exchange.StockStatus.NORMAL, exchange.StockStatus.ST])
         ]
 
-        for case in normal_cases:
+        for case in valid_cases:
             with self.subTest():
                 stock_list = exchange.get_stock_list(*case) # type: ignore
                 self.assertTrue(

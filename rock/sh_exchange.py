@@ -52,7 +52,7 @@ def get_stock_list(types_in: str|list[StockType], status_in: str|list[StockStatu
     """
 
     T = TypeVar('T', bound='IntEnum')
-    def process_input(ipt: str|list[T], cls: Type[T]) -> list[int]:
+    def process_input(ipt: str|list[T], cls: Type[T]) -> list[T]:
         try:
             if isinstance(ipt, str):
                 return list(map(cls, (map(int, ipt.replace(',', ' ').split()))))
@@ -69,16 +69,13 @@ def get_stock_list(types_in: str|list[StockType], status_in: str|list[StockStatu
     types = process_input(types_in, StockType)
     status = process_input(status_in, StockStatus)
 
-    response = _sse_query(
-        ','.join(map(str, types)),
-        ','.join(map(str, status))
-    )
+    response = _query(','.join(map(str, types)), ','.join(map(str, status)))
     response.raise_for_status()
 
-    return _get_data_by_type(response, ContentType.EXCEL)
+    return _get_data(response, ContentType.EXCEL)
 
 
-def _get_data_by_type(response: requests.Response, expected_type: ContentType) -> pd.DataFrame:
+def _get_data(response: requests.Response, expected_type: ContentType) -> pd.DataFrame:
     """
     Parse the response content based on the expected type.
     This function checks the Content-Type of the response and raises an error if it
@@ -112,7 +109,7 @@ def _get_data_by_type(response: requests.Response, expected_type: ContentType) -
     return result
 
 
-def _sse_query(types: str, status: str) -> requests.Response:
+def _query(types: str, status: str) -> requests.Response:
     """
     Fetch data from the Shanghai Stock Exchange (SSE) using a specific SQL query.
     This function constructs a URL with the provided parameters and makes an HTTP GET
