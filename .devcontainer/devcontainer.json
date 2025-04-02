@@ -23,7 +23,8 @@
 		  ],
 		  "settings": {
 			"mypy-type-checker.args": [
-				"--strict"
+				"--strict",
+				"--ignore_missing-imports"
 			]
 		  }
 		}
