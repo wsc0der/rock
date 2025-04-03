@@ -9,3 +9,19 @@ COPY requirements.txt /tmp/
 RUN pip install --no-cache-dir -r /tmp/requirements.txt \
     && rm -f /tmp/requirements.txt
 
+# Create a non-root user with configurable UID and GID
+ARG USERNAME=devuser
+ARG USER_UID=1000
+ARG USER_GID=1000
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && apt-get update && apt-get install -y sudo \
+    && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+# Switch to the non-root user
+USER $USERNAME
+
+
+

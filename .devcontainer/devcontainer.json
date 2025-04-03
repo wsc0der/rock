@@ -8,7 +8,11 @@
 		// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
 		"dockerfile": "../Dockerfile",
 		"args": {
-		}
+			"USER_UID": "${localEnv:UID:1000}", // Dynamically set UID from the host
+            "USER_GID": "${localEnv:GID:1000}"  // Dynamically set GID from the host
+		},
+		"remoteUser": "devuser", // Use the non-root user created in the Dockerfile
+		"updateRemoteUserUID": true // Optional: Automatically update UID to match the host
 	},
 
 	// Configure tool-specific properties.
