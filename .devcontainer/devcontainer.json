@@ -2,11 +2,10 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-dockerfile
 {
 	"name": "Existing Dockerfile",
+	"dockerFile": "../Dockerfile",
 	"build": {
 		// Sets the run context to one level up instead of the .devcontainer folder.
 		"context": "..",
-		// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-		"dockerfile": "../Dockerfile",
 		"args": {
 			"USER_UID": "${localEnv:UID:1000}", // Dynamically set UID from the host
             "USER_GID": "${localEnv:GID:1000}"  // Dynamically set GID from the host
@@ -29,6 +28,11 @@
 			"mypy-type-checker.args": [
 				"--strict",
 				"--ignore_missing-imports"
+			],
+			"pylint.args": [
+				"--max-line-length=120",
+				"--ignore-paths=efinance",
+				"--ignored-modules=efinance"
 			]
 		  }
 		}

@@ -19,6 +19,3 @@ RUN groupadd --gid $USER_GID $USERNAME \
 
 # Switch to the non-root user
 USER $USERNAME
-
-
-
