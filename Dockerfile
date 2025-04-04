@@ -17,5 +17,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
+RUN usermod --shell /bin/bash $USERNAME
+
 # Switch to the non-root user
 USER $USERNAME
