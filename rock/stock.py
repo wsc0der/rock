@@ -48,10 +48,10 @@ def get_history(symboles: Sequence[str],
         Sequence[DataFrame]: A list of DataFrames containing historical data for each symbol.
     """
     if start is not None:
-        start = start.replace('-', '')
+        start = str(start).replace('-', '')
 
     if end is not None:
-        end = end.replace('-', '')
+        end = str(end).replace('-', '')
 
     klt = INTERVAL_KLT_MAPPING.get(interval, 101)
     data = stock.get_quote_history(
@@ -61,7 +61,7 @@ def get_history(symboles: Sequence[str],
         klt,
         0,
         None,
-        False,
+        True,
         True
     )
 

@@ -24,3 +24,16 @@ class TestStock(unittest.TestCase):
                 self.assertTrue(all(
                     isinstance(df, DataFrame) for df in history
                 ), "All elements in history should be DataFrames")
+
+        invalid_cases = [
+            (['000001', ''], stock.Interval.ONE_MINUTE, 1234, 0),
+        ]
+
+        for case in invalid_cases:
+            with self.subTest():
+                history = stock.get_history(*case)
+                self.assertEqual(len(case[0]), len(history),
+                                "Length of history should match number of symbols")
+                for df in history:
+                    self.assertTrue(df.empty,
+                                    "DataFrame should be empty for invalid cases")
