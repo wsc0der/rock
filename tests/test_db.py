@@ -64,11 +64,11 @@ class TestDatabase(unittest.TestCase):
         """Test the creation of the price table."""
 
         # Create the price table
-        db.create_price_table()
+        db.create_history_table()
 
         # Check if the table was created successfully
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{db.Tables.PRICE}';")
+        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{db.Tables.HISTORY}';")
         table_exists = cursor.fetchone() is not None
 
         self.assertTrue(table_exists, "price table should exist after creation.")
@@ -125,7 +125,7 @@ class TestDatabase(unittest.TestCase):
         db.create_security_table()
 
         # Create the price table
-        db.create_price_table()
+        db.create_history_table()
 
         # Insert an exchange first
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
@@ -134,11 +134,11 @@ class TestDatabase(unittest.TestCase):
         db.insert_security('000001', 'Ping An Bank', 'stock', 1)
 
         # Insert a price
-        db.insert_price(1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d')
+        db.insert_history(1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d')
 
         # Check if the price was inserted successfully
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT * FROM {db.Tables.PRICE} WHERE date='2025-03-01';")
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date='2025-03-01';")
         price = cursor.fetchone()
 
         self.assertIsNotNone(price, "Price should be inserted into the database.")
@@ -154,7 +154,7 @@ class TestDatabase(unittest.TestCase):
         db.create_security_table()
 
         # Create the price table
-        db.create_price_table()
+        db.create_history_table()
 
         # Insert an exchange first
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
@@ -171,10 +171,10 @@ class TestDatabase(unittest.TestCase):
 
         # Check if the prices were inserted successfully
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT * FROM {db.Tables.PRICE} WHERE date='2025-03-01';")
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date='2025-03-01';")
         price_1 = cursor.fetchone()
 
-        cursor.execute(f"SELECT * FROM {db.Tables.PRICE} WHERE date='2025-03-02';")
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date='2025-03-02';")
         price_2 = cursor.fetchone()
 
         assert price_1 is not None and price_2 is not None, "Prices should be inserted into the database."

@@ -14,7 +14,7 @@ class Tables(StrEnum):
     """Table names."""
     SECURITY = 'security'
     EXCHANGE = 'exchange'
-    PRICE = 'price'
+    HISTORY = 'history'
 
 def init():
     """Initialize the database."""
@@ -60,12 +60,12 @@ def create_exchange_table():
     connection.close()
 
 
-def create_price_table():
-    """Create price table."""
+def create_history_table():
+    """Create history table."""
     connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute(f'''
-        CREATE TABLE IF NOT EXISTS {Tables.PRICE} (
+        CREATE TABLE IF NOT EXISTS {Tables.HISTORY} (
             id INTEGER PRIMARY KEY,
             security_id INTEGER REFERENCES security(id),
             date TEXT NOT NULL,
@@ -118,13 +118,13 @@ def insert_securities(securities: list[tuple[str, str, str, int]]):
     connection.close()
 
 
-def insert_price(security_id: int, date: str, open_: float, close_: float,
+def insert_history(security_id: int, date: str, open_: float, close_: float,
                   high_: float, low_: float, adj_close: float, volume: int, frequency: str):
-    """Insert price data into the database."""
+    """Insert history data into the database."""
     connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute(f'''
-        INSERT INTO {Tables.PRICE} (security_id, date, open, close, high, low, adj_close, volume, frequency)
+        INSERT INTO {Tables.HISTORY} (security_id, date, open, close, high, low, adj_close, volume, frequency)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (security_id, date, open_, close_, high_, low_, adj_close, volume, frequency))
     connection.commit()
@@ -136,7 +136,7 @@ def insert_prices(prices: list[tuple[int, str, float, float, float, float, float
     connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.executemany(f'''
-        INSERT INTO {Tables.PRICE} (security_id, date, open, close, high, low, adj_close, volume, frequency)
+        INSERT INTO {Tables.HISTORY} (security_id, date, open, close, high, low, adj_close, volume, frequency)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', prices)
     connection.commit()
