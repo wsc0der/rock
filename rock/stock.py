@@ -4,22 +4,10 @@ This module provides a function to retrieve stock related data.
 """
 
 from collections.abc import Sequence
-from enum import StrEnum
 from pandas import DataFrame
 from efinance import stock
+from rock.types import Interval
 
-class Interval(StrEnum):
-    """
-    Enum for intervals used in stock data retrieval.
-    """
-    ONE_MINUTE = "1m"
-    FIVE_MINUTES = "5m"
-    FIFTEEN_MINUTES = "15m"
-    THIRTY_MINUTES = "30m"
-    ONE_HOUR = "1h"
-    ONE_DAY = "1d"
-    ONE_WEEK = "1wk"
-    ONE_MONTH = "1mo"
 
 INTERVAL_KLT_MAPPING = {
     Interval.ONE_MINUTE: 1,

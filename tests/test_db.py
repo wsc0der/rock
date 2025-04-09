@@ -5,6 +5,7 @@ test_db.py
 import unittest
 import os
 import sqlite3
+import pandas as pd
 from rock import db
 
 class TestDatabase(unittest.TestCase):
@@ -37,7 +38,7 @@ class TestDatabase(unittest.TestCase):
         """Test the creation of the stock_info table."""
 
         # Create the stock_info table
-        db.create_security_table(self.connection)
+        db.create_security_table()
 
         # Check if the table was created successfully
         cursor = self.connection.cursor()
@@ -50,7 +51,7 @@ class TestDatabase(unittest.TestCase):
         """Test the creation of the exchange table."""
 
         # Create the exchange table
-        db.create_exchange_table(self.connection)
+        db.create_exchange_table()
 
         # Check if the table was created successfully
         cursor = self.connection.cursor()
@@ -63,7 +64,7 @@ class TestDatabase(unittest.TestCase):
         """Test the creation of the price table."""
 
         # Create the price table
-        db.create_price_table(self.connection)
+        db.create_price_table()
 
         # Check if the table was created successfully
         cursor = self.connection.cursor()
@@ -76,10 +77,10 @@ class TestDatabase(unittest.TestCase):
         """Test inserting an exchange into the database."""
 
         # Create the exchange table
-        db.create_exchange_table(self.connection)
+        db.create_exchange_table()
 
         # Insert an exchange
-        db.insert_exchange(self.connection, 'Shanghai Stock Exchange', 'SSE', 'stock')
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Check if the exchange was inserted successfully
         cursor = self.connection.cursor()
@@ -93,16 +94,16 @@ class TestDatabase(unittest.TestCase):
         """Test inserting a security into the database."""
 
         # Create the exchange table
-        db.create_exchange_table(self.connection)
+        db.create_exchange_table()
 
         # Create the security table
-        db.create_security_table(self.connection)
+        db.create_security_table()
 
         # Insert an exchange first
-        db.insert_exchange(self.connection, 'Shanghai Stock Exchange', 'SSE', 'stock')
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security
-        db.insert_security(self.connection, '000001', 'Ping An Bank', 'stock', 1)
+        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
 
         # Check if the security was inserted successfully
         cursor = self.connection.cursor()
@@ -118,22 +119,22 @@ class TestDatabase(unittest.TestCase):
         """Test inserting a price into the database."""
 
         # Create the exchange table
-        db.create_exchange_table(self.connection)
+        db.create_exchange_table()
 
         # Create the security table
-        db.create_security_table(self.connection)
+        db.create_security_table()
 
         # Create the price table
-        db.create_price_table(self.connection)
+        db.create_price_table()
 
         # Insert an exchange first
-        db.insert_exchange(self.connection, 'Shanghai Stock Exchange', 'SSE', 'stock')
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security first
-        db.insert_security(self.connection, '000001', 'Ping An Bank', 'stock', 1)
+        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
 
         # Insert a price
-        db.insert_price(self.connection, 1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d')
+        db.insert_price(1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d')
 
         # Check if the price was inserted successfully
         cursor = self.connection.cursor()
@@ -142,3 +143,59 @@ class TestDatabase(unittest.TestCase):
 
         self.assertIsNotNone(price, "Price should be inserted into the database.")
         self.assertEqual(price[2], '2025-03-01', "Price date should match.")
+
+    def test_insert_prices(self):
+        """Test inserting multiple prices into the database."""
+
+        # Create the exchange table
+        db.create_exchange_table()
+
+        # Create the security table
+        db.create_security_table()
+
+        # Create the price table
+        db.create_price_table()
+
+        # Insert an exchange first
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+
+        # Insert a security first
+        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
+
+        # Insert multiple prices
+        prices = [
+            (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),
+            (1, '2025-03-02', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d')
+        ]
+        db.insert_prices(prices)
+
+        # Check if the prices were inserted successfully
+        cursor = self.connection.cursor()
+        cursor.execute(f"SELECT * FROM {db.Tables.PRICE} WHERE date='2025-03-01';")
+        price_1 = cursor.fetchone()
+
+        cursor.execute(f"SELECT * FROM {db.Tables.PRICE} WHERE date='2025-03-02';")
+        price_2 = cursor.fetchone()
+
+        assert price_1 is not None and price_2 is not None, "Prices should be inserted into the database."
+
+    def test_get_security(self):
+        """Test getting a security from the database."""
+
+        # Create the exchange table
+        db.create_exchange_table()
+
+        # Create the security table
+        db.create_security_table()
+
+        # Insert an exchange first
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+
+        # Insert a security first
+        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
+
+        # Get the security
+        security = db.get_security('000001')
+
+        self.assertIsNotNone(security, "Security should be retrieved from the database.")
+        self.assertTrue(isinstance(security, pd.DataFrame), "Security should be returned as a DataFrame.")
