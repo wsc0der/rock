@@ -27,58 +27,8 @@ class TestDatabase(unittest.TestCase):
             os.rmdir(os.path.dirname(db.DB_PATH))
         return super().tearDown()
 
-    def test_db_initialization(self):
-        """Test the database initialization."""
-
-        # Check if the database file exists assuming it's already
-        # created in the setup function
-        self.assertTrue(os.path.exists(db.DB_PATH), "Database file should exist after initialization.")
-
-    def test_create_security_table(self):
-        """Test the creation of the stock_info table."""
-
-        # Create the stock_info table
-        db.create_security_table()
-
-        # Check if the table was created successfully
-        cursor = self.connection.cursor()
-        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{db.Tables.SECURITY}';")
-        table_exists = cursor.fetchone() is not None
-
-        self.assertTrue(table_exists, "stock_info table should exist after creation.")
-
-    def test_create_exchange_table(self):
-        """Test the creation of the exchange table."""
-
-        # Create the exchange table
-        db.create_exchange_table()
-
-        # Check if the table was created successfully
-        cursor = self.connection.cursor()
-        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{db.Tables.EXCHANGE}';")
-        table_exists = cursor.fetchone() is not None
-
-        self.assertTrue(table_exists, "exchange table should exist after creation.")
-
-    def test_create_price_table(self):
-        """Test the creation of the price table."""
-
-        # Create the price table
-        db.create_history_table()
-
-        # Check if the table was created successfully
-        cursor = self.connection.cursor()
-        cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{db.Tables.HISTORY}';")
-        table_exists = cursor.fetchone() is not None
-
-        self.assertTrue(table_exists, "price table should exist after creation.")
-
     def test_insert_exchange(self):
         """Test inserting an exchange into the database."""
-
-        # Create the exchange table
-        db.create_exchange_table()
-
         # Insert an exchange
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
@@ -92,13 +42,6 @@ class TestDatabase(unittest.TestCase):
 
     def test_insert_security(self):
         """Test inserting a security into the database."""
-
-        # Create the exchange table
-        db.create_exchange_table()
-
-        # Create the security table
-        db.create_security_table()
-
         # Insert an exchange first
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
@@ -117,16 +60,6 @@ class TestDatabase(unittest.TestCase):
 
     def test_insert_price(self):
         """Test inserting a price into the database."""
-
-        # Create the exchange table
-        db.create_exchange_table()
-
-        # Create the security table
-        db.create_security_table()
-
-        # Create the price table
-        db.create_history_table()
-
         # Insert an exchange first
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
@@ -146,16 +79,6 @@ class TestDatabase(unittest.TestCase):
 
     def test_insert_prices(self):
         """Test inserting multiple prices into the database."""
-
-        # Create the exchange table
-        db.create_exchange_table()
-
-        # Create the security table
-        db.create_security_table()
-
-        # Create the price table
-        db.create_history_table()
-
         # Insert an exchange first
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
@@ -181,16 +104,6 @@ class TestDatabase(unittest.TestCase):
 
     def test_get_security(self):
         """Test getting a security from the database."""
-
-        # Create the exchange table
-        db.create_exchange_table()
-
-        # Create the security table
-        db.create_security_table()
-
-        # Insert an exchange first
-        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
-
         # Insert a security first
         db.insert_security('000001', 'Ping An Bank', 'stock', 1)
 

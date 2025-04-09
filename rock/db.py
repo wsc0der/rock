@@ -24,12 +24,7 @@ def init():
 
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     connection = sqlite3.connect(DB_PATH)
-    connection.close()
 
-
-def create_security_table():
-    """Create stock info table."""
-    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS {Tables.SECURITY} (
@@ -40,14 +35,7 @@ def create_security_table():
             exchange_id INTEGER REFERENCES exchange(id)
         )
     ''')
-    connection.commit()
-    connection.close()
 
-
-def create_exchange_table():
-    """Create exchange table."""
-    connection = sqlite3.connect(DB_PATH)
-    cursor = connection.cursor()
     cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS {Tables.EXCHANGE} (
             id INTEGER PRIMARY KEY,
@@ -56,14 +44,7 @@ def create_exchange_table():
             type TEXT NOT NULL CHECK (type IN ('stock', 'bond', 'fund'))
         )
     ''')
-    connection.commit()
-    connection.close()
 
-
-def create_history_table():
-    """Create history table."""
-    connection = sqlite3.connect(DB_PATH)
-    cursor = connection.cursor()
     cursor.execute(f'''
         CREATE TABLE IF NOT EXISTS {Tables.HISTORY} (
             id INTEGER PRIMARY KEY,
@@ -78,6 +59,7 @@ def create_history_table():
             frequency TEXT CHECK (frequency IN ('1m', '1d'))
         )
     ''')
+
     connection.commit()
     connection.close()
 
