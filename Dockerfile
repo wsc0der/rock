@@ -1,9 +1,10 @@
-FROM python:3.13.2
+FROM python:3.13.3-slim
 
 
 RUN apt update \
     && apt upgrade -y \
-    && apt install -y sqlite3
+    && apt install -y sqlite3 \
+    && apt install -y git
 
 
 # Create a non-root user with configurable UID and GID
