@@ -104,16 +104,17 @@ class TestDatabase(unittest.TestCase):
         db.insert_security('000001', 'Ping An Bank', 'stock', 1)
 
         # Insert a price
-        db.insert_history(1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d')
+        valid_case = [1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d']
+        db.insert_history(*valid_case)
 
         # Check if the price was inserted successfully
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date='2025-03-01';")
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date={valid_case[1]};")
         price = cursor.fetchone()
         cursor.close()
 
         self.assertIsNotNone(price, "Price should be inserted into the database.")
-        self.assertEqual(price[1], '2025-03-01', "Price date should match.")
+        self.assertEqual(price[1], valid_case[1], "Price date should match.")
 
         # Test invalid cases
         invalid_cases = [
@@ -187,10 +188,27 @@ class TestDatabase(unittest.TestCase):
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security first
-        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
+        valid_case = ['000001', 'Ping An Bank', 'stock', 1]
+        db.insert_security(*valid_case)
 
         # Get the security
         security = db.get_security('000001')
 
         self.assertIsNotNone(security, "Security should be retrieved from the database.")
         self.assertTrue(isinstance(security, pd.DataFrame), "Security should be returned as a DataFrame.")
+        self.assertTrue(not security.empty, "DataFrame should not be empty.")
+        self.assertEqual(security.iloc[0]['symbol'], valid_case[0], "Security symbol should match.")
+        self.assertEqual(security.iloc[0]['name'], valid_case[1], "Security name should match.")
+        self.assertEqual(security.iloc[0]['type'], valid_case[2], "Security type should match.")
+
+        # Test invalid case
+        invalid_cases = [
+            None,  # symbol is None
+            '',    # symbol is empty
+            '000002'  # symbol does not exist
+        ]
+
+        for case in invalid_cases:
+            with self.subTest():
+                df = db.get_security(case)
+                self.assertTrue(df.empty, "Empty DataFrame should be returned for invalid cases.")

@@ -157,6 +157,6 @@ def get_security(symbol: str) -> DataFrame:
             SELECT * FROM {Tables.SECURITY} WHERE symbol=?
         '''
         df = read_sql(query, connection, params=(symbol,))
+        return df
     finally:
         connection.close()
-    return df
