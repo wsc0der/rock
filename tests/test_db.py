@@ -109,7 +109,7 @@ class TestDatabase(unittest.TestCase):
 
         # Check if the price was inserted successfully
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date={valid_case[1]};")
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date='{valid_case[1]}';")
         price = cursor.fetchone()
         cursor.close()
 
