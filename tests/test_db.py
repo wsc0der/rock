@@ -4,7 +4,8 @@ test_db.py
 
 import unittest
 import os
-import sqlite3
+from sqlite3 import IntegrityError
+from datetime import datetime as dt
 import pandas as pd
 from rock import db
 
@@ -56,7 +57,7 @@ class TestDatabase(unittest.TestCase):
 
         for case in invalid_cases:
             with self.subTest():
-                with self.assertRaises(sqlite3.IntegrityError, msg=case):
+                with self.assertRaises(IntegrityError, msg=case):
                     db.insert_exchange(*case)
 
     def test_insert_security(self):
@@ -92,7 +93,7 @@ class TestDatabase(unittest.TestCase):
 
         for case in invalid_cases:
             with self.subTest():
-                with self.assertRaises(sqlite3.IntegrityError, msg=case):
+                with self.assertRaises(IntegrityError, msg=case):
                     db.insert_security(*case)
 
     def test_insert_price(self):
@@ -103,45 +104,51 @@ class TestDatabase(unittest.TestCase):
         # Insert a security first
         db.insert_security('000001', 'Ping An Bank', 'stock', 1)
 
-        # Insert a price
-        valid_case = [1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d']
-        db.insert_history(*valid_case)
+        # Insert price
+        valid_cases = [
+            (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),
+            (1, '2025-03-01 10:30:12', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d')
+        ]
+        for case in valid_cases:
+            db.insert_history(*case)
 
         # Check if the price was inserted successfully
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date='{valid_case[1]}';")
+        timestamp = dt.fromisoformat(valid_cases[0][1]).timestamp()
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE datetime={timestamp};")
         price = cursor.fetchone()
         cursor.close()
 
         self.assertIsNotNone(price, "Price should be inserted into the database.")
-        self.assertEqual(price[1], valid_case[1], "Price date should match.")
 
         # Test invalid cases
         invalid_cases = [
-            (None, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),  # security_id is None
-            (0, None, 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),             # date is None
-            (1, '', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),               # date is empty
-            (0, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),     # security_id is invalid
-            (999, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),   # security_id is invalid
-            (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),     # primary key is duplicated
-            (1, '2025-03-02', None, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),     # open_price is None
-            (1, '2025-03-02', 10.0, None, 12.0, 9.0, 10.5, 1000, '1d'),     # close_price is None
-            (1, '2025-03-02', 10.0, 11.0, None, 9.0, 10.5, 1000, '1d'),     # high_price is None
-            (1, '2025-03-02', 10.0, 11.0, 12.0, None, 10.5, 1000, '1d'),    # low_price is None
-            (1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, None, 1000, '1d'),     # adj_close is None
-            (1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, None, '1d'),     # volume is None
-            (1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, -1000, '1d'),    # volume is negative
-            (1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, None),     # frequency is None
-            (1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, ''),       # frequency is empty
-            (1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 'invalid') # frequency is invalid
+            (IntegrityError, None, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),  # security_id is None
+            (TypeError, 0, None, 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),                  # date is None
+            (ValueError, 1, '', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),                   # date is empty
+            (ValueError, 1, 'abcd', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),               # date not in valid format
+            (TypeError, 1, 999, 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),                   # date is not a string
+            (IntegrityError, 0, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),     # security_id is invalid
+            (IntegrityError, 999, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),   # security_id is invalid
+            (IntegrityError, 1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),     # primary key is duplicated
+            (IntegrityError, 1, '2025-03-02', None, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),     # open_price is None
+            (IntegrityError, 1, '2025-03-02', 10.0, None, 12.0, 9.0, 10.5, 1000, '1d'),     # close_price is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, None, 9.0, 10.5, 1000, '1d'),     # high_price is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, None, 10.5, 1000, '1d'),    # low_price is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, None, 1000, '1d'),     # adj_close is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, None, '1d'),     # volume is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, -1000, '1d'),    # volume is negative
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, None),     # frequency is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, ''),       # frequency is empty
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 'invalid') # frequency is invalid
         ]
 
         for case in invalid_cases:
             with self.subTest():
-                with self.assertRaises(sqlite3.IntegrityError, msg=case):
-                    db.insert_history(*case)
+                with self.assertRaises(case[0], msg=case):
+                    db.insert_history(*case[1:])
 
-    def test_insert_prices(self):
+    def test_bulk_insert_history(self):
         """Test inserting multiple prices into the database."""
         # Insert an exchange first
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
@@ -154,14 +161,14 @@ class TestDatabase(unittest.TestCase):
             (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),
             (1, '2025-03-02', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d')
         ]
-        db.insert_prices(prices)
+        db.bulk_insert_history(prices)
 
         # Check if the prices were inserted successfully
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date='2025-03-01';")
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE datetime={dt.fromisoformat('2025-03-01').timestamp()};")
         price_1 = cursor.fetchone()
 
-        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date='2025-03-02';")
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE datetime={dt.fromisoformat('2025-03-02').timestamp()};")
         price_2 = cursor.fetchone()
 
         self.assertTrue(price_1 is not None and price_2 is not None, "Prices should be inserted into the database.")
@@ -172,13 +179,22 @@ class TestDatabase(unittest.TestCase):
             (2, '2025-03-03', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d'),
         ]
 
-        with self.assertRaises(sqlite3.IntegrityError):
-            db.insert_prices(invalid_case)
+        with self.assertRaises(IntegrityError):
+            db.bulk_insert_history(invalid_case)
 
         # Check if the database is still consistent
-        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE date='2025-03-03';")
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE datetime='2025-03-03';")
         price_3 = cursor.fetchall()
         self.assertEqual(len(price_3), 0, "No prices should be inserted after an error.")
+
+        # Test invalid datetime
+        invalid_datetime = [
+            (1, '', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),   # date is empty
+            (1, '2025-03-03', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'), # frequency is None
+        ]
+
+        with self.assertRaises(ValueError):
+            db.bulk_insert_history(invalid_datetime)
         cursor.close()
 
 

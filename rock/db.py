@@ -4,6 +4,7 @@ rock/db.py
 import sqlite3
 import os
 from enum import StrEnum
+from datetime import datetime as dt
 from pandas import DataFrame, read_sql
 
 DB_NAME = 'rock.db'
@@ -19,13 +20,19 @@ class Tables(StrEnum):
 def init() -> None:
     """Initialize the database."""
     if os.path.exists(DB_PATH):
-        print(f'Database {DB_NAME} is already exist.')
+        print(f'Database {DB_PATH} is already exist.')
         return
 
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    connection = get_db_connection()
-    try:
-        cursor = connection.cursor()
+    def adapt_datetime_iso_epoch(val):
+        """Adapt datetime to Unix timestamp."""
+        return int(val.timestamp())
+    def convert_epoch_datetime_iso(val):
+        """Convert Unix timestamp to datetime."""
+        return dt.fromtimestamp(val)
+    sqlite3.register_adapter(dt, adapt_datetime_iso_epoch)
+    sqlite3.register_converter("timestamp", convert_epoch_datetime_iso)
+
+    def create_security_table():
         cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS {Tables.SECURITY} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,7 +42,7 @@ def init() -> None:
                 exchange_id INTEGER REFERENCES {Tables.EXCHANGE}(id)
             )
         ''')
-
+    def create_exchange_table():
         cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS {Tables.EXCHANGE} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,10 +52,12 @@ def init() -> None:
             )
         ''')
 
+
+    def create_history_table():
         cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS {Tables.HISTORY} (
                 security_id INTEGER NOT NULL REFERENCES {Tables.SECURITY}(id),
-                date TEXT NOT NULL ChECK (date != ''),
+                datetime TIMESTAMP NOT NULL DEFAULT 0 CHECK ( datetime >= 0),
                 open REAL NOT NULL,
                 close REAL NOT NULL,
                 high REAL NOT NULL,
@@ -56,9 +65,17 @@ def init() -> None:
                 adj_close REAL NOT NULL,
                 volume INTEGER NOT NULL CHECK (volume >= 0),
                 frequency TEXT NOT NULL CHECK (frequency IN ('1m', '1d')),
-                PRIMARY KEY (security_id, date)
+                PRIMARY KEY (security_id, datetime)
             )
         ''')
+
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    try:
+        create_security_table()
+        create_exchange_table()
+        create_history_table()
         connection.commit()
     finally:
         cursor.close()
@@ -125,24 +142,28 @@ def insert_history(security_id: int, date: str, open_price: float, close_price: 
     try:
         cursor = connection.cursor()
         cursor.execute(f'''
-            INSERT INTO {Tables.HISTORY} (security_id, date, open, close, high, low, adj_close, volume, frequency)
+            INSERT INTO {Tables.HISTORY} (security_id, datetime, open, close, high, low, adj_close, volume, frequency)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (security_id, date, open_price, close_price, high_price, low_price, adj_close, volume, frequency))
+            ''',
+            (security_id, dt.fromisoformat(date), open_price, close_price,
+             high_price, low_price, adj_close, volume, frequency)
+        )
         connection.commit()
     finally:
         cursor.close()
         connection.close()
 
 
-def insert_prices(prices: list[tuple[int, str, float, float, float, float, float, int, str]]) -> None:
-    """Insert multiple prices into the database."""
+def bulk_insert_history(history: list[tuple[int, str, float, float, float, float, float, int, str]]) -> None:
+    """Insert multiple history into the database."""
     connection = get_db_connection()
+    transformed_history = ((item[0], dt.fromisoformat(item[1]), *item[2:]) for item in history)
     try:
         cursor = connection.cursor()
         cursor.executemany(f'''
-            INSERT INTO {Tables.HISTORY} (security_id, date, open, close, high, low, adj_close, volume, frequency)
+            INSERT INTO {Tables.HISTORY} (security_id, datetime, open, close, high, low, adj_close, volume, frequency)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', prices)
+        ''', transformed_history)
         connection.commit()
     finally:
         cursor.close()
