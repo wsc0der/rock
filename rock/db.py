@@ -17,20 +17,21 @@ class Tables(StrEnum):
     EXCHANGE = 'exchange'
     HISTORY = 'history'
 
+
 def init() -> None:
     """Initialize the database."""
     if os.path.exists(DB_PATH):
         print(f'Database {DB_PATH} is already exist.')
         return
 
-    def adapt_datetime_iso_epoch(val):
+    def adapt_datetime_epoch(val):
         """Adapt datetime to Unix timestamp."""
         return int(val.timestamp())
-    def convert_epoch_datetime_iso(val):
+    def convert_epoch_datetime(val):
         """Convert Unix timestamp to datetime."""
         return dt.fromtimestamp(val)
-    sqlite3.register_adapter(dt, adapt_datetime_iso_epoch)
-    sqlite3.register_converter("timestamp", convert_epoch_datetime_iso)
+    sqlite3.register_adapter(dt, adapt_datetime_epoch)
+    sqlite3.register_converter("timestamp", convert_epoch_datetime)
 
     def create_security_table():
         cursor.execute(f'''
@@ -39,7 +40,8 @@ def init() -> None:
                 symbol TEXT NOT NULL UNIQUE CHECK (symbol != ''),
                 name TEXT NOT NULL UNIQUE CHECK (name != ''),
                 type TEXT CHECK (type IN ('stock', 'bond', 'fund')),
-                exchange_id INTEGER REFERENCES {Tables.EXCHANGE}(id)
+                exchange_id INTEGER REFERENCES {Tables.EXCHANGE}(id),
+                updated_at TIMESTAMP NOT NULL DEFAULT 0 CHECK ( updated_at >= 0)
             )
         ''')
     def create_exchange_table():
@@ -51,8 +53,6 @@ def init() -> None:
                 type TEXT NOT NULL CHECK (type IN ('stock', 'bond', 'fund'))
             )
         ''')
-
-
     def create_history_table():
         cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS {Tables.HISTORY} (
@@ -148,6 +148,10 @@ def insert_history(security_id: int, date: str, open_price: float, close_price: 
             (security_id, dt.fromisoformat(date), open_price, close_price,
              high_price, low_price, adj_close, volume, frequency)
         )
+        cursor.execute(f'''
+            UPDATE {Tables.SECURITY} SET updated_at = ?
+            WHERE id = ?
+        ''', (dt.now(), security_id))
         connection.commit()
     finally:
         cursor.close()
@@ -164,6 +168,10 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
             INSERT INTO {Tables.HISTORY} (security_id, datetime, open, close, high, low, adj_close, volume, frequency)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', transformed_history)
+        cursor.executemany(f'''
+            UPDATE {Tables.SECURITY} SET updated_at = ?
+            WHERE id = ?
+        ''', ((dt.now(), item[0]) for item in history))
         connection.commit()
     finally:
         cursor.close()

@@ -117,9 +117,13 @@ class TestDatabase(unittest.TestCase):
         timestamp = dt.fromisoformat(valid_cases[0][1]).timestamp()
         cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE datetime={timestamp};")
         price = cursor.fetchone()
+        cursor.execute(f'SELECT updated_at FROM {db.Tables.SECURITY} WHERE id={valid_cases[0][0]};')
+        updated_at = cursor.fetchone()
         cursor.close()
 
         self.assertIsNotNone(price, "Price should be inserted into the database.")
+        self.assertAlmostEqual(updated_at[0], int(dt.now().timestamp()), delta=1,
+                               msg="Security updated_at should be updated.")
 
         # Test invalid cases
         invalid_cases = [
@@ -165,13 +169,22 @@ class TestDatabase(unittest.TestCase):
 
         # Check if the prices were inserted successfully
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE datetime={dt.fromisoformat('2025-03-01').timestamp()};")
+        cursor.execute(f'''
+            SELECT * FROM {db.Tables.HISTORY} WHERE datetime={dt.fromisoformat('2025-03-01').timestamp()};
+        ''')
         price_1 = cursor.fetchone()
 
-        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE datetime={dt.fromisoformat('2025-03-02').timestamp()};")
+        cursor.execute(f'''
+            SELECT * FROM {db.Tables.HISTORY} WHERE datetime={dt.fromisoformat('2025-03-02').timestamp()};
+        ''')
         price_2 = cursor.fetchone()
 
         self.assertTrue(price_1 is not None and price_2 is not None, "Prices should be inserted into the database.")
+
+        cursor.execute(f'SELECT updated_at FROM {db.Tables.SECURITY} WHERE id={prices[0][0]};')
+        updated_at = cursor.fetchone()
+        self.assertAlmostEqual(updated_at[0], int(dt.now().timestamp()), delta=1,
+                               msg="Security updated_at should be updated.")
 
         # Test invalid case
         invalid_case = [
