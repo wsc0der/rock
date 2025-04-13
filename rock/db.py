@@ -138,24 +138,9 @@ def insert_securities(securities: list[tuple[str, str, str, int]]) -> None:
 def insert_history(security_id: int, date: str, open_price: float, close_price: float,
                   high_price: float, low_price: float, adj_close: float, volume: int, frequency: str) -> None:
     """Insert history data into the database."""
-    connection = get_db_connection()
-    try:
-        cursor = connection.cursor()
-        cursor.execute(f'''
-            INSERT INTO {Tables.HISTORY} (security_id, datetime, open, close, high, low, adj_close, volume, frequency)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''',
-            (security_id, dt.fromisoformat(date), open_price, close_price,
-             high_price, low_price, adj_close, volume, frequency)
-        )
-        cursor.execute(f'''
-            UPDATE {Tables.SECURITY} SET updated_at = ?
-            WHERE id = ?
-        ''', (dt.now(), security_id))
-        connection.commit()
-    finally:
-        cursor.close()
-        connection.close()
+    bulk_insert_history([
+        (security_id, date, open_price, close_price, high_price, low_price, adj_close, volume, frequency)
+    ])
 
 
 def bulk_insert_history(history: list[tuple[int, str, float, float, float, float, float, int, str]]) -> None:
