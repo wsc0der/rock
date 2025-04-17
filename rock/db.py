@@ -4,8 +4,9 @@ rock/db.py
 import sqlite3
 import os
 from enum import StrEnum
+from typing import Mapping, Any
 from datetime import datetime as dt
-from pandas import DataFrame, read_sql
+
 
 DB_NAME = 'rock.db'
 DB_PATH = os.path.expanduser(f'~/rockdb/{DB_NAME}')
@@ -29,7 +30,7 @@ def init() -> None:
         return int(val.timestamp())
     def convert_epoch_datetime(val):
         """Convert Unix timestamp to datetime."""
-        return dt.fromtimestamp(val)
+        return dt.fromtimestamp(int(val))
     sqlite3.register_adapter(dt, adapt_datetime_epoch)
     sqlite3.register_converter("timestamp", convert_epoch_datetime)
 
@@ -84,7 +85,8 @@ def init() -> None:
 
 def get_db_connection() -> sqlite3.Connection:
     """Get a database connection."""
-    connection = sqlite3.connect(DB_PATH)
+    connection = sqlite3.connect(DB_PATH, detect_types=sqlite3.PARSE_DECLTYPES)
+    connection.row_factory = sqlite3.Row
     connection.execute('PRAGMA foreign_keys = ON;')
     return connection
 
@@ -163,14 +165,34 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
         connection.close()
 
 
-def get_security(symbol: str) -> DataFrame:
+def get_security(symbol: str) -> Mapping[str, Any]:
     """Get security data from the database."""
     connection = get_db_connection()
     try:
-        query = f'''
+        cursor = connection.cursor()
+        cursor.execute(f'''
             SELECT * FROM {Tables.SECURITY} WHERE symbol=?
-        '''
-        df = read_sql(query, connection, params=(symbol,))
-        return df
+        ''', (symbol,))
+        return cursor.fetchone()
     finally:
+        cursor.close()
         connection.close()
+
+
+def has_history(security: str, end: str) -> bool:
+    """
+    Check if history exists for a given security ID by comparing the end date with
+    the history_updated_at date in security table. We assume that if the history_updated_at
+    date is greater than the end date, then history exists.
+    Args:
+        security (str): The security symbol.
+        start (str): The start date in YYYY-MM-DD format.
+        end (str): The end date in YYYY-MM-DD format.
+    Returns:
+        bool: True if history exists, False otherwise.
+    """
+    security = get_security(security)
+
+    history_updated_at = security['history_updated_at']
+    history_end = dt.fromisoformat(end)
+    return history_updated_at >= history_end

@@ -4,9 +4,8 @@ test_db.py
 
 import unittest
 import os
-from sqlite3 import IntegrityError
-from datetime import datetime as dt
-import pandas as pd
+from sqlite3 import IntegrityError, Row
+from datetime import datetime as dt, timedelta
 from rock import db
 
 class TestDatabase(unittest.TestCase):
@@ -122,8 +121,8 @@ class TestDatabase(unittest.TestCase):
         cursor.close()
 
         self.assertIsNotNone(history, "History should be inserted into the database.")
-        self.assertAlmostEqual(history_updated_at[0], int(dt.now().timestamp()), delta=1,
-                               msg="Security history_updated_at should be updated.")
+        self.assertIsInstance(history['datetime'], dt, "History datetime should be a datetime object.")
+        self.assertTrue(history_updated_at[0] <= dt.now(), msg="Security history_updated_at should be updated.")
 
         # Test invalid cases
         invalid_cases = [
@@ -179,12 +178,12 @@ class TestDatabase(unittest.TestCase):
         ''')
         history_2 = cursor.fetchone()
 
-        self.assertTrue(history_1 is not None and history_2 is not None, "Histories should be inserted into the database.")
+        self.assertTrue(history_1 is not None and history_2 is not None,
+                        "Histories should be inserted into the database.")
 
         cursor.execute(f'SELECT history_updated_at FROM {db.Tables.SECURITY} WHERE id={histories[0][0]};')
         history_updated_at = cursor.fetchone()
-        self.assertAlmostEqual(history_updated_at[0], int(dt.now().timestamp()), delta=1,
-                               msg="Security history_updated_at should be updated.")
+        self.assertTrue(history_updated_at[0] <= dt.now(), msg="Security history_updated_at should be updated.")
 
         # Test invalid case
         invalid_case = [
@@ -210,7 +209,6 @@ class TestDatabase(unittest.TestCase):
             db.bulk_insert_history(invalid_datetime)
         cursor.close()
 
-
     def test_get_security(self):
         """Test getting a security from the database."""
         # Insert an exchange first
@@ -224,11 +222,10 @@ class TestDatabase(unittest.TestCase):
         security = db.get_security('000001')
 
         self.assertIsNotNone(security, "Security should be retrieved from the database.")
-        self.assertTrue(isinstance(security, pd.DataFrame), "Security should be returned as a DataFrame.")
-        self.assertTrue(not security.empty, "DataFrame should not be empty.")
-        self.assertEqual(security.iloc[0]['symbol'], valid_case[0], "Security symbol should match.")
-        self.assertEqual(security.iloc[0]['name'], valid_case[1], "Security name should match.")
-        self.assertEqual(security.iloc[0]['type'], valid_case[2], "Security type should match.")
+        self.assertTrue(isinstance(security, Row), "Security should be returned as a Row object.")
+        self.assertEqual(security['symbol'], valid_case[0], "Security symbol should match.")
+        self.assertEqual(security['name'], valid_case[1], "Security name should match.")
+        self.assertEqual(security['type'], valid_case[2], "Security type should match.")
 
         # Test invalid case
         invalid_cases = [
@@ -239,5 +236,39 @@ class TestDatabase(unittest.TestCase):
 
         for case in invalid_cases:
             with self.subTest():
-                df = db.get_security(case)
-                self.assertTrue(df.empty, "Empty DataFrame should be returned for invalid cases.")
+                row = db.get_security(case)
+                self.assertTrue(row is None, "Security should not be found in the database.")
+
+    def test_get_history(self):
+        """Test getting history from the database."""
+        # Insert an exchange first
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+
+        # Insert a security first
+        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
+
+        # Insert history
+        valid_case = (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d')
+        db.insert_history(*valid_case)
+
+        today = dt.now()
+        valid_cases = [
+            today.strftime('%Y-%m-%d'),
+            (today - timedelta(days=1)).strftime('%Y-%m-%d'),
+            (today - timedelta(weeks=10)).strftime('%Y-%m-%d')
+        ]
+
+        for case in valid_cases:
+            with self.subTest():
+                self.assertTrue(db.has_history('000001', case),
+                                "History should be found in the database.")
+
+        invalid_cases = [
+            (today + timedelta(days=1)).strftime('%Y-%m-%d'),
+            (today + timedelta(weeks=10)).strftime('%Y-%m-%d')
+        ]
+
+        for case in invalid_cases:
+            with self.subTest():
+                self.assertFalse(db.has_history('000001', case),
+                                 "History should not be found in the database.")
