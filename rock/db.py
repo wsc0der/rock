@@ -71,7 +71,7 @@ def init() -> None:
         ''')
 
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    connection = get_db_connection()
+    connection = get_connection()
     cursor = connection.cursor()
     try:
         create_security_table()
@@ -83,7 +83,7 @@ def init() -> None:
         connection.close()
 
 
-def get_db_connection() -> sqlite3.Connection:
+def get_connection() -> sqlite3.Connection:
     """Get a database connection."""
     connection = sqlite3.connect(DB_PATH, detect_types=sqlite3.PARSE_DECLTYPES)
     connection.row_factory = sqlite3.Row
@@ -93,7 +93,7 @@ def get_db_connection() -> sqlite3.Connection:
 
 def insert_exchange(name: str, acronym: str, exchange_type: str) -> None:
     """Insert exchange data into the database."""
-    connection = get_db_connection()
+    connection = get_connection()
     try:
         cursor = connection.cursor()
         cursor.execute(f'''
@@ -109,7 +109,7 @@ def insert_exchange(name: str, acronym: str, exchange_type: str) -> None:
 
 def insert_security(symbol: str, name: str, symbol_type: str, exchange_id: int) -> None:
     """Insert security data into the database."""
-    connection = get_db_connection()
+    connection = get_connection()
     try:
         cursor = connection.cursor()
         cursor.execute(f'''
@@ -124,7 +124,7 @@ def insert_security(symbol: str, name: str, symbol_type: str, exchange_id: int) 
 
 def insert_securities(securities: list[tuple[str, str, str, int]]) -> None:
     """Insert multiple securities into the database."""
-    connection = get_db_connection()
+    connection = get_connection()
     try:
         cursor = connection.cursor()
         cursor.executemany(f'''
@@ -147,7 +147,7 @@ def insert_history(security_id: int, date: str, open_price: float, close_price: 
 
 def bulk_insert_history(history: list[tuple[int, str, float, float, float, float, float, int, str]]) -> None:
     """Insert multiple history into the database."""
-    connection = get_db_connection()
+    connection = get_connection()
     transformed_history = ((item[0], dt.fromisoformat(item[1]), *item[2:]) for item in history)
     try:
         cursor = connection.cursor()
@@ -167,7 +167,7 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
 
 def get_security(symbol: str) -> Mapping[str, Any]:
     """Get security data from the database."""
-    connection = get_db_connection()
+    connection = get_connection()
     try:
         cursor = connection.cursor()
         cursor.execute(f'''

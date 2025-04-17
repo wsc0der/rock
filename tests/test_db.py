@@ -12,7 +12,7 @@ class TestDatabase(unittest.TestCase):
     """Test cases for the database module."""
     def setUp(self):
         db.init()
-        self.connection = db.get_db_connection()
+        self.connection = db.get_connection()
         return super().setUp()
 
     def tearDown(self):
