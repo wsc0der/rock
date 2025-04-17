@@ -239,7 +239,7 @@ class TestDatabase(unittest.TestCase):
                 row = db.get_security(case)
                 self.assertTrue(row is None, "Security should not be found in the database.")
 
-    def test_get_history(self):
+    def test_has_history(self):
         """Test getting history from the database."""
         # Insert an exchange first
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
