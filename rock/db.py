@@ -41,7 +41,7 @@ def init() -> None:
                 name TEXT NOT NULL UNIQUE CHECK (name != ''),
                 type TEXT CHECK (type IN ('stock', 'bond', 'fund')),
                 exchange_id INTEGER REFERENCES {Tables.EXCHANGE}(id),
-                updated_at TIMESTAMP NOT NULL DEFAULT 0 CHECK ( updated_at >= 0)
+                history_updated_at TIMESTAMP NOT NULL DEFAULT 0 CHECK ( history_updated_at >= 0)
             )
         ''')
     def create_exchange_table():
@@ -154,7 +154,7 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', transformed_history)
         cursor.executemany(f'''
-            UPDATE {Tables.SECURITY} SET updated_at = ?
+            UPDATE {Tables.SECURITY} SET history_updated_at = ?
             WHERE id = ?
         ''', ((dt.now(), item[0]) for item in history))
         connection.commit()
