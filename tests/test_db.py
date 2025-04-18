@@ -250,8 +250,10 @@ class TestDatabase(unittest.TestCase):
             '',    # symbol is empty
             'abcdefg'  # symbol does not exist
         ]
+        results = db.get_security(invalid_cases)
+        self.assertTrue(len(results) == 0, "Security should not be found in the database.")
 
-        for case in invalid_cases:
-            with self.subTest():
-                results = db.get_security(case)
-                self.assertTrue(len(results) == 0, "Security should not be found in the database.")
+        # Test partial valid cases
+        partial_cases = ['000001', '000002', 'invalid symbol']
+        results = db.get_security(partial_cases)
+        self.assertTrue(len(results) == 2, "Only valid securities should be retrieved.")
