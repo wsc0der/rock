@@ -3,8 +3,8 @@ rock/db.py
 """
 import sqlite3
 import os
+from collections.abc import Sequence
 from enum import StrEnum
-from typing import Mapping, Any
 from datetime import datetime as dt
 
 
@@ -165,34 +165,21 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
         connection.close()
 
 
-def get_security(symbol: str) -> Mapping[str, Any]:
+def get_security(symbols: str|Sequence[str]) -> Sequence[sqlite3.Row]:
     """Get security data from the database."""
+    if isinstance(symbols, str):
+        symbols = [symbols]
+
+    if not isinstance(symbols, Sequence):
+        return []
+
     connection = get_connection()
     try:
         cursor = connection.cursor()
         cursor.execute(f'''
-            SELECT * FROM {Tables.SECURITY} WHERE symbol=?
-        ''', (symbol,))
-        return cursor.fetchone()
+            SELECT * FROM {Tables.SECURITY} WHERE symbol IN ({','.join(['?'] * len(symbols))})
+        ''', symbols)
+        return cursor.fetchall()
     finally:
         cursor.close()
         connection.close()
-
-
-def has_history(security: str, end: str) -> bool:
-    """
-    Check if history exists for a given security ID by comparing the end date with
-    the history_updated_at date in security table. We assume that if the history_updated_at
-    date is greater than the end date, then history exists.
-    Args:
-        security (str): The security symbol.
-        start (str): The start date in YYYY-MM-DD format.
-        end (str): The end date in YYYY-MM-DD format.
-    Returns:
-        bool: True if history exists, False otherwise.
-    """
-    security = get_security(security)
-
-    history_updated_at = security['history_updated_at']
-    history_end = dt.fromisoformat(end)
-    return history_updated_at >= history_end

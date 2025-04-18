@@ -4,8 +4,9 @@ test_db.py
 
 import unittest
 import os
+from collections.abc import Sequence
 from sqlite3 import IntegrityError, Row
-from datetime import datetime as dt, timedelta
+from datetime import datetime as dt
 from rock import db
 
 class TestDatabase(unittest.TestCase):
@@ -215,60 +216,42 @@ class TestDatabase(unittest.TestCase):
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security first
-        valid_case = ['000001', 'Ping An Bank', 'stock', 1]
-        db.insert_security(*valid_case)
+        securities = [
+            ('000001', 'Ping An Bank', 'stock', 1),
+            ('000002', 'Another company', 'stock', 1),
+            ('000003', 'Another company 2', 'stock', 1),
+            ('000004', 'Another company 3', 'stock', 1)
+        ]
+        for s in securities:
+            db.insert_security(*s)
 
-        # Get the security
-        security = db.get_security('000001')
+        # Test single case
+        test_security = securities[0]
+        result = db.get_security(test_security[0])
 
-        self.assertIsNotNone(security, "Security should be retrieved from the database.")
-        self.assertTrue(isinstance(security, Row), "Security should be returned as a Row object.")
-        self.assertEqual(security['symbol'], valid_case[0], "Security symbol should match.")
-        self.assertEqual(security['name'], valid_case[1], "Security name should match.")
-        self.assertEqual(security['type'], valid_case[2], "Security type should match.")
+        self.assertIsNotNone(result, "Security should be retrieved from the database.")
+        self.assertTrue(isinstance(result, Sequence), "Security should be returned as a Sequence object.")
+        self.assertTrue(result[0]['symbol' == test_security[0]]
+            and result[0]['name'] == test_security[1]
+            and result[0]['type'] == test_security[2], "Security data should match.")
+
+        # Test multiple cases
+        result = db.get_security([item[0] for item in securities])
+        self.assertTrue(isinstance(result, Sequence), "Security should be returned as a Sequence object.")
+        self.assertTrue(len(result) == len(securities), "Number of securities should match.")
+        for r, s in zip(result, securities):
+            self.assertTrue(isinstance(r, Row), "Each item should be a Row object.")
+            self.assertTrue(r['symbol'] == s[0] and r['name'] == s[1] and r['type'] == s[2],
+                "Security data should match.")
 
         # Test invalid case
         invalid_cases = [
             None,  # symbol is None
             '',    # symbol is empty
-            '000002'  # symbol does not exist
+            'abcdefg'  # symbol does not exist
         ]
 
         for case in invalid_cases:
             with self.subTest():
-                row = db.get_security(case)
-                self.assertTrue(row is None, "Security should not be found in the database.")
-
-    def test_has_history(self):
-        """Test getting history from the database."""
-        # Insert an exchange first
-        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
-
-        # Insert a security first
-        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
-
-        # Insert history
-        valid_case = (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d')
-        db.insert_history(*valid_case)
-
-        today = dt.now()
-        valid_cases = [
-            today.strftime('%Y-%m-%d'),
-            (today - timedelta(days=1)).strftime('%Y-%m-%d'),
-            (today - timedelta(weeks=10)).strftime('%Y-%m-%d')
-        ]
-
-        for case in valid_cases:
-            with self.subTest():
-                self.assertTrue(db.has_history('000001', case),
-                                "History should be found in the database.")
-
-        invalid_cases = [
-            (today + timedelta(days=1)).strftime('%Y-%m-%d'),
-            (today + timedelta(weeks=10)).strftime('%Y-%m-%d')
-        ]
-
-        for case in invalid_cases:
-            with self.subTest():
-                self.assertFalse(db.has_history('000001', case),
-                                 "History should not be found in the database.")
+                results = db.get_security(case)
+                self.assertTrue(len(results) == 0, "Security should not be found in the database.")
