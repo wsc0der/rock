@@ -5,4 +5,4 @@ clean:
 	find . -name '__pycache__' -type d -exec rm -rf '{}' \+
 
 test:
-	python -m unittest discover -s tests
+	python -m unittest discover -s tests -t .

@@ -9,7 +9,7 @@ from sqlite3 import IntegrityError, Row
 from datetime import datetime as dt
 from rock.data import local
 
-class TestDatabase(unittest.TestCase):
+class TestLocal(unittest.TestCase):
     """Test cases for the database module."""
     def setUp(self):
         local.init()
