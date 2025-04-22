@@ -5,20 +5,9 @@ This module provides a function to retrieve stock related data.
 
 from collections.abc import Sequence
 from pandas import DataFrame
-from efinance import stock
 from rock.types import Interval
+from rock.data import web_scraper
 
-
-INTERVAL_KLT_MAPPING = {
-    Interval.ONE_MINUTE: 1,
-    Interval.FIVE_MINUTES: 5,
-    Interval.FIFTEEN_MINUTES: 15,
-    Interval.THIRTY_MINUTES: 30,
-    Interval.ONE_HOUR: 60,
-    Interval.ONE_DAY: 101,
-    Interval.ONE_WEEK: 102,
-    Interval.ONE_MONTH: 103
-}
 
 def get_history(symboles: Sequence[str],
                 interval: Interval = Interval.ONE_DAY,
@@ -35,22 +24,9 @@ def get_history(symboles: Sequence[str],
     Returns:
         Sequence[DataFrame]: A list of DataFrames containing historical data for each symbol.
     """
-    if start is not None:
-        start = str(start).replace('-', '')
-
-    if end is not None:
-        end = str(end).replace('-', '')
-
-    klt = INTERVAL_KLT_MAPPING.get(interval, 101)
-    data = stock.get_quote_history(
-        list(symboles),
+    return web_scraper.get_history(
+        symboles,
+        interval,
         start,
-        end,
-        klt,
-        0,
-        None,
-        True,
-        True
+        end
     )
-
-    return [data[s] for s in symboles]
