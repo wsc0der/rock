@@ -15,5 +15,3 @@ logging.basicConfig(
 logging.getLogger('urllib3').setLevel(logging.INFO)
 
 logger = logging.getLogger('rock')
-
-__all__ = ['logger']
