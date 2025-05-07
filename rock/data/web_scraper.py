@@ -2,7 +2,7 @@
 web_scraper.py
 This module provides a function to retrieve stock related data.
 """
-from collections.abc import Sequence
+from collections.abc import Sequence, Mapping
 from pandas import DataFrame
 from efinance import stock
 from rock.types import Interval
@@ -24,7 +24,7 @@ def get_history(symboles: Sequence[str],
                  interval: Interval = Interval.ONE_DAY,
                  start: str | None = None,   # YYYY-MM-DD
                  end: str | None = None      # YYYY-MM-DD
-             ) -> Sequence[DataFrame]:
+             ) -> Mapping[str, DataFrame]:
     """
     Retrieve historical stock data for the given symbols.
     Args:
@@ -42,7 +42,7 @@ def get_history(symboles: Sequence[str],
         end = str(end).replace('-', '')
 
     klt = INTERVAL_KLT_MAPPING.get(interval, 101)
-    data = stock.get_quote_history(
+    return stock.get_quote_history(
         list(symboles),
         start,
         end,
@@ -52,5 +52,3 @@ def get_history(symboles: Sequence[str],
         True,
         True
     )
-
-    return [data[s] for s in symboles]

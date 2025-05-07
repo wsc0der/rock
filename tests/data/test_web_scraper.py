@@ -3,7 +3,6 @@ Test cases for web_scraper.py module
 """
 
 import unittest
-from pandas import DataFrame
 from rock.data import web_scraper
 from rock.types import Interval
 
@@ -22,10 +21,8 @@ class TestWebScraper(unittest.TestCase):
         for case in valid_cases:
             with self.subTest():
                 history = web_scraper.get_history(*case)  # type: ignore
-                self.assertEqual(len(case[0]), len(history))
-                self.assertTrue(all(
-                    isinstance(df, DataFrame) for df in history
-                ), "All elements in history should be DataFrames")
+                self.assertTrue(all(s in history.keys() for s in case[0]),
+                                "All symbols should be present in the history")
 
         invalid_cases = [
             (['000001', ''], Interval.ONE_MINUTE, 1234, 0),
@@ -34,8 +31,5 @@ class TestWebScraper(unittest.TestCase):
         for case in invalid_cases:
             with self.subTest():
                 history = web_scraper.get_history(*case)
-                self.assertEqual(len(case[0]), len(history),
-                                "Length of history should match number of symbols")
-                for df in history:
-                    self.assertTrue(df.empty,
-                                    "DataFrame should be empty for invalid cases")
+                self.assertTrue(all(s in history.keys() and history[s].empty for s in case[0]),
+                                "Invalid cases should return empty history")

@@ -183,3 +183,24 @@ def get_security(symbols: str|Sequence[str]) -> Sequence[sqlite3.Row]:
     finally:
         cursor.close()
         connection.close()
+
+
+def get_history(symbols: str|Sequence[str], start: str|None = None, end: str|None = None) -> Sequence[sqlite3.Row]:
+    """Get history data from the database."""
+    if isinstance(symbols, str):
+        symbols = [symbols]
+
+    if not isinstance(symbols, Sequence):
+        return []
+
+    connection = get_connection()
+    try:
+        cursor = connection.cursor()
+        cursor.execute(f'''
+            SELECT * FROM {Tables.HISTORY} WHERE security_id IN ({','.join(['?'] * len(symbols))})
+            AND datetime >= ? AND datetime <= ?
+        ''', symbols + [start, end])
+        return cursor.fetchall()
+    finally:
+        cursor.close()
+        connection.close()
