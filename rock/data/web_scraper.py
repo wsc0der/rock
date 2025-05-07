@@ -33,7 +33,7 @@ def get_history(symboles: Sequence[str],
         start (str | None): The start date in YYYY-MM-DD format.
         end (str | None): The end date in YYYY-MM-DD format.
     Returns:
-        Sequence[DataFrame]: A list of DataFrames containing historical data for each symbol.
+        Mapping[str, DataFrame]: A dictionary of DataFrames containing historical data for each symbol.
     """
     if start is not None:
         start = str(start).replace('-', '')
