@@ -5,8 +5,7 @@ test_db.py
 from collections.abc import Sequence, Mapping
 from sqlite3 import IntegrityError, Row
 from datetime import datetime as dt
-from pandas import DataFrame
-from rock.data import local_db
+from rock.data import db
 from tests.data.base import DBTestCaseBase
 
 class TestLocal(DBTestCaseBase):
@@ -15,11 +14,11 @@ class TestLocal(DBTestCaseBase):
     def test_insert_exchange(self):
         """Test inserting an exchange into the database."""
         # Insert an exchange
-        local_db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Check if the exchange was inserted successfully
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT * FROM {local_db.Tables.EXCHANGE} WHERE acronym='SSE';")
+        cursor.execute(f"SELECT * FROM {db.Tables.EXCHANGE} WHERE acronym='SSE';")
         exchange = cursor.fetchone()
         cursor.close()
 
@@ -42,19 +41,19 @@ class TestLocal(DBTestCaseBase):
         for case in invalid_cases:
             with self.subTest():
                 with self.assertRaises(IntegrityError, msg=case):
-                    local_db.insert_exchange(*case)
+                    db.insert_exchange(*case)
 
     def test_insert_security(self):
         """Test inserting a security into the database."""
         # Insert an exchange first
-        local_db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security
-        local_db.insert_security('000001', 'Ping An Bank', 'stock', 1)
+        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
 
         # Check if the security was inserted successfully
         cursor = self.connection.cursor()
-        cursor.execute(f"SELECT * FROM {local_db.Tables.SECURITY} WHERE symbol='000001';")
+        cursor.execute(f"SELECT * FROM {db.Tables.SECURITY} WHERE symbol='000001';")
         security = cursor.fetchone()
         cursor.close()
 
@@ -78,15 +77,15 @@ class TestLocal(DBTestCaseBase):
         for case in invalid_cases:
             with self.subTest():
                 with self.assertRaises(IntegrityError, msg=case):
-                    local_db.insert_security(*case)
+                    db.insert_security(*case)
 
     def test_insert_history(self):
         """Test inserting a history into the database."""
         # Insert an exchange first
-        local_db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security first
-        local_db.insert_security('000001', 'Ping An Bank', 'stock', 1)
+        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
 
         # Insert history
         valid_cases = [
@@ -94,12 +93,12 @@ class TestLocal(DBTestCaseBase):
             (1, '2025-03-01 10:30:12', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d')
         ]
         for case in valid_cases:
-            local_db.insert_history(*case)
+            db.insert_history(*case)
 
         # Check if the history was inserted successfully
         cursor = self.connection.cursor()
         timestamp = dt.fromisoformat(valid_cases[0][1]).timestamp()
-        cursor.execute(f"SELECT * FROM {local_db.Tables.HISTORY} WHERE datetime={timestamp};")
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE datetime={timestamp};")
         history = cursor.fetchone()
         cursor.close()
 
@@ -131,32 +130,32 @@ class TestLocal(DBTestCaseBase):
         for case in invalid_cases:
             with self.subTest():
                 with self.assertRaises(case[0], msg=case):
-                    local_db.insert_history(*case[1:])
+                    db.insert_history(*case[1:])
 
     def test_bulk_insert_history(self):
         """Test inserting multiple history into the database."""
         # Insert an exchange first
-        local_db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security first
-        local_db.insert_security('000001', 'Ping An Bank', 'stock', 1)
+        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
 
         # Insert multiple history
         histories = [
             (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),
             (1, '2025-03-02', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d')
         ]
-        local_db.bulk_insert_history(histories)
+        db.bulk_insert_history(histories)
 
         # Check if the histories were inserted successfully
         cursor = self.connection.cursor()
         cursor.execute(f'''
-            SELECT * FROM {local_db.Tables.HISTORY} WHERE datetime={dt.fromisoformat('2025-03-01').timestamp()};
+            SELECT * FROM {db.Tables.HISTORY} WHERE datetime={dt.fromisoformat('2025-03-01').timestamp()};
         ''')
         history_1 = cursor.fetchone()
 
         cursor.execute(f'''
-            SELECT * FROM {local_db.Tables.HISTORY} WHERE datetime={dt.fromisoformat('2025-03-02').timestamp()};
+            SELECT * FROM {db.Tables.HISTORY} WHERE datetime={dt.fromisoformat('2025-03-02').timestamp()};
         ''')
         history_2 = cursor.fetchone()
 
@@ -170,10 +169,10 @@ class TestLocal(DBTestCaseBase):
         ]
 
         with self.assertRaises(IntegrityError):
-            local_db.bulk_insert_history(invalid_case)
+            db.bulk_insert_history(invalid_case)
 
         # Check if the database is still consistent
-        cursor.execute(f"SELECT * FROM {local_db.Tables.HISTORY} WHERE datetime='2025-03-03';")
+        cursor.execute(f"SELECT * FROM {db.Tables.HISTORY} WHERE datetime='2025-03-03';")
         history_3 = cursor.fetchall()
         self.assertEqual(len(history_3), 0, "No history should be inserted after an error.")
 
@@ -184,13 +183,13 @@ class TestLocal(DBTestCaseBase):
         ]
 
         with self.assertRaises(ValueError):
-            local_db.bulk_insert_history(invalid_datetime)
+            db.bulk_insert_history(invalid_datetime)
         cursor.close()
 
     def test_get_security(self):
         """Test getting a security from the database."""
         # Insert an exchange first
-        local_db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security first
         securities = [
@@ -200,11 +199,11 @@ class TestLocal(DBTestCaseBase):
             ('000004', 'Another company 3', 'stock', 1)
         ]
         for s in securities:
-            local_db.insert_security(*s)
+            db.insert_security(*s)
 
         # Test single case
         test_security = securities[0]
-        result = local_db.get_security(test_security[0])
+        result = db.get_security(test_security[0])
 
         self.assertIsNotNone(result, "Security should be retrieved from the database.")
         self.assertTrue(isinstance(result, Sequence), "Security should be returned as a Sequence object.")
@@ -213,7 +212,7 @@ class TestLocal(DBTestCaseBase):
             and result[0]['type'] == test_security[2], "Security data should match.")
 
         # Test multiple cases
-        result = local_db.get_security([item[0] for item in securities])
+        result = db.get_security([item[0] for item in securities])
         self.assertTrue(isinstance(result, Sequence), "Security should be returned as a Sequence object.")
         self.assertTrue(len(result) == len(securities), "Number of securities should match.")
         for r, s in zip(result, securities):
@@ -227,18 +226,18 @@ class TestLocal(DBTestCaseBase):
             '',    # symbol is empty
             'abcdefg'  # symbol does not exist
         ]
-        results = local_db.get_security(invalid_cases)
+        results = db.get_security(invalid_cases)
         self.assertTrue(len(results) == 0, "Security should not be found in the database.")
 
         # Test partial valid cases
         partial_cases = ['000001', '000002', 'invalid symbol']
-        results = local_db.get_security(partial_cases)
+        results = db.get_security(partial_cases)
         self.assertTrue(len(results) == 2, "Only valid securities should be retrieved.")
 
     def test_get_history(self):
         """Test getting history from the database."""
         # Insert an exchange first
-        local_db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         data = [
             (('000001', 'Ping An Bank', 'stock', 1), [
@@ -252,17 +251,17 @@ class TestLocal(DBTestCaseBase):
         ]
         # Insert securities
         securities = [security for security, _ in data]
-        local_db.insert_securities(securities)
+        db.insert_securities(securities)
 
         # Insert history
         histories = [history for _, histories in data
                                 for history in histories]
 
-        local_db.bulk_insert_history(histories)
+        db.bulk_insert_history(histories)
 
         # Test single security
         test_security = '000001'
-        result = local_db.get_history(test_security)
+        result = db.get_history(test_security)
         self.assertIsNotNone(result, "History should be retrieved from the database.")
         self.assertTrue(isinstance(result, Mapping), "History should be returned as a Mapping object.")
         h = result[test_security]
@@ -271,7 +270,7 @@ class TestLocal(DBTestCaseBase):
 
         # Test multiple securities
         test_securities = ['000001', '000002']
-        result = local_db.get_history(test_securities)
+        result = db.get_history(test_securities)
         self.assertTrue(all(security in result for security in test_securities),
             "All requested securities should be in the result.")
         self.assertTrue(all(len(value) == 2 for value in result.values()),
@@ -280,11 +279,11 @@ class TestLocal(DBTestCaseBase):
         # Test parameter with begin
         test_security = '000001'
         test_begin = '2025-03-02'
-        result = local_db.get_history(test_security, test_begin)
+        result = db.get_history(test_security, test_begin)
         self.assertEqual(len(result[test_security]), 1, "Number of histories should match.")
 
         # Test parameter with end
         test_security = '000002'
         test_end = '2024-01-04'
-        result = local_db.get_history(test_security, end=test_end)
+        result = db.get_history(test_security, end=test_end)
         self.assertEqual(len(result[test_security]), 1, "Number of histories should match.")

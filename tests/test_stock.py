@@ -13,7 +13,7 @@ class TestStock(unittest.TestCase):
     def test_get_history(self) -> None:
         """Test get_history function."""
 
-    @patch('rock.data.local_db.get_security', return_value=[{'symbol': 'AAPL'}])
+    @patch('rock.data.db.get_security', return_value=[{'symbol': 'AAPL'}])
     @patch('rock.data.web_scraper.get_history', return_value={})
     def test_logs_missing_securities(self, mock_get_history, mock_get_security):
         """Test that missing securities are logged."""

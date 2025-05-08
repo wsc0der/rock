@@ -1,7 +1,7 @@
 """Test the Manager class."""
 import unittest
 import os
-from rock.data import local_db
+from rock.data import db
 
 class DBTestCaseBase(unittest.TestCase):
     """
@@ -9,8 +9,8 @@ class DBTestCaseBase(unittest.TestCase):
     """
 
     def setUp(self):
-        local_db.init()
-        self.connection = local_db.get_connection()
+        db.init()
+        self.connection = db.get_connection()
         return super().setUp()
 
     def tearDown(self):
@@ -20,7 +20,7 @@ class DBTestCaseBase(unittest.TestCase):
         except AttributeError:
             pass
 
-        if os.path.exists(local_db.DB_PATH):
-            os.remove(local_db.DB_PATH)
-            os.rmdir(os.path.dirname(local_db.DB_PATH))
+        if os.path.exists(db.DB_PATH):
+            os.remove(db.DB_PATH)
+            os.rmdir(os.path.dirname(db.DB_PATH))
         return super().tearDown()
