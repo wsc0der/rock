@@ -101,13 +101,10 @@ class TestLocal(DBTestCaseBase):
         timestamp = dt.fromisoformat(valid_cases[0][1]).timestamp()
         cursor.execute(f"SELECT * FROM {local_db.Tables.HISTORY} WHERE datetime={timestamp};")
         history = cursor.fetchone()
-        cursor.execute(f'SELECT history_updated_at FROM {local_db.Tables.SECURITY} WHERE id={valid_cases[0][0]};')
-        history_updated_at = cursor.fetchone()
         cursor.close()
 
         self.assertIsNotNone(history, "History should be inserted into the database.")
         self.assertIsInstance(history['datetime'], dt, "History datetime should be a datetime object.")
-        self.assertTrue(history_updated_at[0] <= dt.now(), msg="Security history_updated_at should be updated.")
 
         # Test invalid cases
         invalid_cases = [
@@ -165,10 +162,6 @@ class TestLocal(DBTestCaseBase):
 
         self.assertTrue(history_1 is not None and history_2 is not None,
                         "Histories should be inserted into the database.")
-
-        cursor.execute(f'SELECT history_updated_at FROM {local_db.Tables.SECURITY} WHERE id={histories[0][0]};')
-        history_updated_at = cursor.fetchone()
-        self.assertTrue(history_updated_at[0] <= dt.now(), msg="Security history_updated_at should be updated.")
 
         # Test invalid case
         invalid_case = [
