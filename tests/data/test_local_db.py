@@ -2,11 +2,12 @@
 test_db.py
 """
 
-from collections.abc import Sequence
+from collections.abc import Sequence, Mapping
 from sqlite3 import IntegrityError, Row
 from datetime import datetime as dt
+from pandas import DataFrame
 from rock.data import local_db
-from .base import DBTestCaseBase
+from tests.data.base import DBTestCaseBase
 
 class TestLocal(DBTestCaseBase):
     """Test cases for the database module."""
@@ -240,3 +241,57 @@ class TestLocal(DBTestCaseBase):
         partial_cases = ['000001', '000002', 'invalid symbol']
         results = local_db.get_security(partial_cases)
         self.assertTrue(len(results) == 2, "Only valid securities should be retrieved.")
+
+    def test_get_history(self):
+        """Test getting history from the database."""
+        # Insert an exchange first
+        local_db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+
+        data = [
+            (('000001', 'Ping An Bank', 'stock', 1), [
+                (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),
+                (1, '2025-03-02', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d')
+            ]),
+            (('000002', 'Another Company', 'stock', 1), [
+                (2, '2024-01-04', 9.0, 11.0, 14.0, 12.0, 11.5, 3000, '1d'),
+                (2, '2024-01-05', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d')
+            ])
+        ]
+        # Insert securities
+        securities = [security for security, _ in data]
+        local_db.insert_securities(securities)
+
+        # Insert history
+        histories = [history for _, histories in data
+                                for history in histories]
+
+        local_db.bulk_insert_history(histories)
+
+        # Test single security
+        test_security = '000001'
+        result = local_db.get_history(test_security)
+        self.assertIsNotNone(result, "History should be retrieved from the database.")
+        self.assertTrue(isinstance(result, Mapping), "History should be returned as a Mapping object.")
+        h = result[test_security]
+        self.assertTrue(isinstance(h, DataFrame), "History should be a DataFrame.")
+        self.assertEqual(h.shape[0], 2, "Number of histories should match.")
+
+        # Test multiple securities
+        test_securities = ['000001', '000002']
+        result = local_db.get_history(test_securities)
+        self.assertTrue(all(security in result for security in test_securities),
+            "All requested securities should be in the result.")
+        self.assertTrue(all(len(value) == 2 for value in result.values()),
+            "Number of histories for each security should match.")
+
+        # Test parameter with begin
+        test_security = '000001'
+        test_begin = '2025-03-02'
+        result = local_db.get_history(test_security, test_begin)
+        self.assertEqual(result[test_security].shape[0], 1, "Number of histories should match.")
+
+        # Test parameter with end
+        test_security = '000002'
+        test_end = '2024-01-04'
+        result = local_db.get_history(test_security, end=test_end)
+        self.assertEqual(result[test_security].shape[0], 1, "Number of histories should match.")

@@ -3,9 +3,10 @@ rock/db.py
 """
 import sqlite3
 import os
-from collections.abc import Sequence
+from collections.abc import Sequence, Mapping
 from enum import StrEnum
 from datetime import datetime as dt
+from pandas import DataFrame
 
 
 DB_NAME = 'rock.db'
@@ -185,22 +186,44 @@ def get_security(symbols: str|Sequence[str]) -> Sequence[sqlite3.Row]:
         connection.close()
 
 
-def get_history(symbols: str|Sequence[str], start: str|None = None, end: str|None = None) -> Sequence[sqlite3.Row]:
+def get_history(symbols: str|Sequence[str], start: str|None = None, end: str|None = None) -> Mapping[str, DataFrame]:
     """Get history data from the database."""
     if isinstance(symbols, str):
         symbols = [symbols]
 
     if not isinstance(symbols, Sequence):
-        return []
+        return {}
+
+    s = dt.fromisoformat(start) if start else None
+    e = dt.fromisoformat(end) if end else None
 
     connection = get_connection()
     try:
         cursor = connection.cursor()
-        cursor.execute(f'''
-            SELECT * FROM {Tables.HISTORY} WHERE security_id IN ({','.join(['?'] * len(symbols))})
-            AND datetime >= ? AND datetime <= ?
-        ''', symbols + [start, end])
-        return cursor.fetchall()
+        result = {}
+        for symbol in symbols:
+            cursor.execute(f'''
+                SELECT * FROM {Tables.SECURITY} WHERE symbol = ?
+            ''', (symbol,))
+            security = cursor.fetchone()
+            if not security:
+                result[symbol] = DataFrame()
+                continue
+
+            cursor.execute(f'''
+                SELECT * FROM {Tables.HISTORY} WHERE security_id = ?
+                AND datetime >= ? AND datetime <= ?
+            ''', (security['id'],
+                  0 if s is None else s,
+                  dt.max if e is None else e))
+            history = cursor.fetchall()
+            if not history:
+                result[symbol] = DataFrame()
+                continue
+
+            result[symbol] = DataFrame(history)
+
+        return result
     finally:
         cursor.close()
         connection.close()
