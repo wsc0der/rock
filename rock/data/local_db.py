@@ -3,10 +3,9 @@ rock/db.py
 """
 import sqlite3
 import os
-from collections.abc import Sequence, Mapping
+from collections.abc import Sequence
 from enum import StrEnum
 from datetime import datetime as dt
-from pandas import DataFrame
 
 
 DB_NAME = 'rock.db'
