@@ -266,8 +266,8 @@ class TestLocal(DBTestCaseBase):
         self.assertIsNotNone(result, "History should be retrieved from the database.")
         self.assertTrue(isinstance(result, Mapping), "History should be returned as a Mapping object.")
         h = result[test_security]
-        self.assertTrue(isinstance(h, DataFrame), "History should be a DataFrame.")
-        self.assertEqual(h.shape[0], 2, "Number of histories should match.")
+        self.assertTrue(isinstance(h, Sequence), "History should be a DataFrame.")
+        self.assertEqual(len(h), 2, "Number of histories should match.")
 
         # Test multiple securities
         test_securities = ['000001', '000002']
@@ -281,10 +281,10 @@ class TestLocal(DBTestCaseBase):
         test_security = '000001'
         test_begin = '2025-03-02'
         result = local_db.get_history(test_security, test_begin)
-        self.assertEqual(result[test_security].shape[0], 1, "Number of histories should match.")
+        self.assertEqual(len(result[test_security]), 1, "Number of histories should match.")
 
         # Test parameter with end
         test_security = '000002'
         test_end = '2024-01-04'
         result = local_db.get_history(test_security, end=test_end)
-        self.assertEqual(result[test_security].shape[0], 1, "Number of histories should match.")
+        self.assertEqual(len(result[test_security]), 1, "Number of histories should match.")

@@ -181,7 +181,7 @@ def get_security(symbols: str|Sequence[str]) -> Sequence[sqlite3.Row]:
         connection.close()
 
 
-def get_history(symbols: str|Sequence[str], start: str|None = None, end: str|None = None) -> Mapping[str, DataFrame]:
+def get_history(symbols: str|Sequence[str], start: str|None = None, end: str|None = None) -> Sequence[sqlite3.Row]:
     """Get history data from the database."""
     if isinstance(symbols, str):
         symbols = [symbols]
@@ -202,7 +202,7 @@ def get_history(symbols: str|Sequence[str], start: str|None = None, end: str|Non
             ''', (symbol,))
             security = cursor.fetchone()
             if not security:
-                result[symbol] = DataFrame()
+                result[symbol] = []
                 continue
 
             cursor.execute(f'''
@@ -213,10 +213,10 @@ def get_history(symbols: str|Sequence[str], start: str|None = None, end: str|Non
                   dt.max if e is None else e))
             history = cursor.fetchall()
             if not history:
-                result[symbol] = DataFrame()
+                result[symbol] = []
                 continue
 
-            result[symbol] = DataFrame(history)
+            result[symbol] = history
 
         return result
     finally:
