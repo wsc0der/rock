@@ -6,6 +6,7 @@ import os
 from collections.abc import Sequence
 from enum import StrEnum
 from datetime import datetime as dt
+from rock import logger
 
 
 DB_NAME = 'rock.db'
@@ -77,6 +78,7 @@ def init() -> None:
         create_exchange_table()
         create_history_table()
         connection.commit()
+        logger.info(f'Database {DB_PATH} initialized successfully.')
     finally:
         cursor.close()
         connection.close()

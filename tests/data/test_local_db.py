@@ -6,9 +6,9 @@ from collections.abc import Sequence, Mapping
 from sqlite3 import IntegrityError, Row
 from datetime import datetime as dt
 from rock.data import db
-from tests.data.base import DBTestCaseBase
+from tests.base import TestCaseBase
 
-class TestLocal(DBTestCaseBase):
+class TestLocal(TestCaseBase):
     """Test cases for the database module."""
 
     def test_insert_exchange(self):

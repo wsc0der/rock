@@ -3,7 +3,7 @@ import unittest
 import os
 from rock.data import db
 
-class DBTestCaseBase(unittest.TestCase):
+class TestCaseBase(unittest.TestCase):
     """
     Base class for database test cases.
     """
