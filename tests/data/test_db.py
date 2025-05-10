@@ -333,6 +333,3 @@ class TestLocal(unittest.TestCase):
         ]
         results = db.get_exchange(invalid_cases)
         self.assertTrue(len(results) == 0, "Exchange should not be found in the database.")
-
-if __name__ == '__main__':
-    unittest.main()
