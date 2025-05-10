@@ -3,7 +3,8 @@ rock/db.py
 """
 import sqlite3
 import os
-from collections.abc import Sequence
+from collections.abc import Sequence, Mapping
+from typing import Any
 from enum import StrEnum
 from datetime import datetime as dt
 from rock import logger
@@ -20,9 +21,9 @@ class Tables(StrEnum):
     HISTORY = 'history'
 
 
-def init() -> None:
+def create_db() -> None:
     """Initialize the database."""
-    if os.path.exists(DB_PATH):
+    if db_exist():
         print(f'Database {DB_PATH} is already exist.')
         return
 
@@ -78,10 +79,15 @@ def init() -> None:
         create_exchange_table()
         create_history_table()
         connection.commit()
-        logger.info(f'Database {DB_PATH} initialized successfully.')
+        logger.info('Database %s initialized successfully.', DB_PATH)
     finally:
         cursor.close()
         connection.close()
+
+
+def db_exist() -> bool:
+    """Check if the database exists."""
+    return os.path.exists(DB_PATH)
 
 
 def get_connection() -> sqlite3.Connection:
@@ -162,27 +168,18 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
         connection.close()
 
 
-def get_security(symbols: str|Sequence[str]) -> Sequence[sqlite3.Row]:
+def get_security(symbols: str|Sequence[str]) -> sqlite3.Row|Sequence[sqlite3.Row]|None:
     """Get security data from the database."""
-    if isinstance(symbols, str):
-        symbols = [symbols]
-
-    if not isinstance(symbols, Sequence):
-        return []
-
-    connection = get_connection()
-    try:
-        cursor = connection.cursor()
-        cursor.execute(f'''
-            SELECT * FROM {Tables.SECURITY} WHERE symbol IN ({','.join(['?'] * len(symbols))})
-        ''', symbols)
-        return cursor.fetchall()
-    finally:
-        cursor.close()
-        connection.close()
+    return _get_data_from_table(Tables.SECURITY, 'symbol', symbols)
 
 
-def get_history(symbols: str|Sequence[str], start: str|None = None, end: str|None = None) -> Sequence[sqlite3.Row]:
+def get_exchange(ex: str|Sequence[str]) -> sqlite3.Row|Sequence[sqlite3.Row]|None:
+    """Get exchange data from the database."""
+    return _get_data_from_table(Tables.EXCHANGE, 'name', ex)
+
+
+def get_history(symbols: str|Sequence[str], start: str|None = None,
+                end: str|None = None) -> Mapping[str, Sequence[sqlite3.Row]]:
     """Get history data from the database."""
     if isinstance(symbols, str):
         symbols = [symbols]
@@ -220,6 +217,27 @@ def get_history(symbols: str|Sequence[str], start: str|None = None, end: str|Non
             result[symbol] = history
 
         return result
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def _get_data_from_table(table: str, field: str, value: Any|Sequence[Any]) -> sqlite3.Row|Sequence[sqlite3.Row]|None:
+    """Get data from the database."""
+    if isinstance(value, str):
+        value = [value]
+
+    if not isinstance(value, Sequence):
+        return []
+
+    connection = get_connection()
+    try:
+        cursor = connection.cursor()
+        cursor.execute(f'''
+            SELECT * FROM {table} WHERE {field} IN ({','.join(['?'] * len(value))})
+        ''', value)
+        result = cursor.fetchall()
+        return result if isinstance(value, Sequence) else result[0] if len(result) > 0 else None
     finally:
         cursor.close()
         connection.close()

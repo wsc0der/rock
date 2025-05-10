@@ -12,7 +12,7 @@ from rock.data import db
 class TestLocal(unittest.TestCase):
     """Test cases for the database module."""
     def setUp(self):
-        db.init()
+        db.create_db()
         self.connection = db.get_connection()
         return super().setUp()
 
