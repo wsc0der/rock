@@ -3,7 +3,7 @@ rock/db.py
 """
 import sqlite3
 import os
-from collections.abc import Sequence, Mapping
+from collections.abc import Mapping
 from typing import Any
 from enum import StrEnum
 from datetime import datetime as dt
@@ -168,23 +168,23 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
         connection.close()
 
 
-def get_security(symbols: str|Sequence[str]) -> sqlite3.Row|Sequence[sqlite3.Row]|None:
+def get_security(symbols: str|list[str]) -> sqlite3.Row|list[sqlite3.Row]|None:
     """Get security data from the database."""
     return _get_data_from_table(Tables.SECURITY, 'symbol', symbols)
 
 
-def get_exchange(ex: str|Sequence[str]) -> sqlite3.Row|Sequence[sqlite3.Row]|None:
+def get_exchange(ex: str|list[str]) -> sqlite3.Row|list[sqlite3.Row]|None:
     """Get exchange data from the database."""
-    return _get_data_from_table(Tables.EXCHANGE, 'name', ex)
+    return _get_data_from_table(Tables.EXCHANGE, 'acronym', ex)
 
 
-def get_history(symbols: str|Sequence[str], start: str|None = None,
-                end: str|None = None) -> Mapping[str, Sequence[sqlite3.Row]]:
+def get_history(symbols: str|list[str], start: str|None = None,
+                end: str|None = None) -> Mapping[str, list[sqlite3.Row]]:
     """Get history data from the database."""
     if isinstance(symbols, str):
         symbols = [symbols]
 
-    if not isinstance(symbols, Sequence):
+    if not isinstance(symbols, list):
         return {}
 
     s = dt.fromisoformat(start) if start else None
@@ -222,13 +222,15 @@ def get_history(symbols: str|Sequence[str], start: str|None = None,
         connection.close()
 
 
-def _get_data_from_table(table: str, field: str, value: Any|Sequence[Any]) -> sqlite3.Row|Sequence[sqlite3.Row]|None:
+def _get_data_from_table(table: str, field: str, value_in: Any|list[Any]) -> sqlite3.Row|list[sqlite3.Row]|None:
     """Get data from the database."""
-    if isinstance(value, str):
-        value = [value]
+    if isinstance(value_in, str):
+        value = [value_in]
+    else:
+        value = value_in
 
-    if not isinstance(value, Sequence):
-        return []
+    if not isinstance(value, list):
+        return None
 
     connection = get_connection()
     try:
@@ -237,7 +239,11 @@ def _get_data_from_table(table: str, field: str, value: Any|Sequence[Any]) -> sq
             SELECT * FROM {table} WHERE {field} IN ({','.join(['?'] * len(value))})
         ''', value)
         result = cursor.fetchall()
-        return result if isinstance(value, Sequence) else result[0] if len(result) > 0 else None
+        if isinstance(value_in, list):
+            return result
+        if len(result) > 0:
+            return result[0]
+        return None
     finally:
         cursor.close()
         connection.close()

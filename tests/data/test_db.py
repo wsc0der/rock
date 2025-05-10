@@ -224,9 +224,9 @@ class TestLocal(unittest.TestCase):
 
         self.assertIsNotNone(result, "Security should be retrieved from the database.")
         self.assertTrue(isinstance(result, Sequence), "Security should be returned as a Sequence object.")
-        self.assertTrue(result[0]['symbol' == test_security[0]]
-            and result[0]['name'] == test_security[1]
-            and result[0]['type'] == test_security[2], "Security data should match.")
+        self.assertTrue(result['symbol'] == test_security[0]
+            and result['name'] == test_security[1]
+            and result['type'] == test_security[2], "Security data should match.")
 
         # Test multiple cases
         result = db.get_security([item[0] for item in securities])
@@ -304,3 +304,35 @@ class TestLocal(unittest.TestCase):
         test_end = '2024-01-04'
         result = db.get_history(test_security, end=test_end)
         self.assertEqual(len(result[test_security]), 1, "Number of histories should match.")
+
+    def test_get_exchange(self):
+        """Test getting an exchange from the database."""
+        # Insert an exchange
+        db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
+        db.insert_exchange('Shenzhen Stock Exchange', 'SZSE', 'stock')
+        db.insert_exchange('Hong Kong Stock Exchange', 'HKEX', 'stock')
+
+        # Test single case
+        test_exchange = 'SSE'
+        result = db.get_exchange(test_exchange)
+        self.assertIsNotNone(result, "Exchange should be retrieved from the database.")
+        self.assertTrue(isinstance(result, Row), "Exchange should be returned as a Row object.")
+        self.assertEqual(result['name'], 'Shanghai Stock Exchange', "Exchange name should match.")
+
+        # Test multiple cases
+        test_exchanges = ['SSE', 'SZSE', 'HKEX']
+        result = db.get_exchange(test_exchanges)
+        self.assertTrue(isinstance(result, Sequence), "Exchange should be returned as a Sequence object.")
+        self.assertEqual(len(result), len(test_exchanges), "Number of exchanges should match.")
+
+        # Test invalid case
+        invalid_cases = [
+            None,  # exchange is None
+            '',    # exchange is empty
+            'invalid'  # exchange does not exist
+        ]
+        results = db.get_exchange(invalid_cases)
+        self.assertTrue(len(results) == 0, "Exchange should not be found in the database.")
+
+if __name__ == '__main__':
+    unittest.main()
