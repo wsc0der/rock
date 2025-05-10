@@ -2,14 +2,31 @@
 test_db.py
 """
 
+import unittest
+import os
 from collections.abc import Sequence, Mapping
 from sqlite3 import IntegrityError, Row
 from datetime import datetime as dt
 from rock.data import db
-from tests.base import TestCaseBase
 
-class TestLocal(TestCaseBase):
+class TestLocal(unittest.TestCase):
     """Test cases for the database module."""
+    def setUp(self):
+        db.init()
+        self.connection = db.get_connection()
+        return super().setUp()
+
+    def tearDown(self):
+        # Close the database connection if it's open
+        try:
+            self.connection.close()
+        except AttributeError:
+            pass
+
+        if os.path.exists(db.DB_PATH):
+            os.remove(db.DB_PATH)
+            os.rmdir(os.path.dirname(db.DB_PATH))
+        return super().tearDown()
 
     def test_insert_exchange(self):
         """Test inserting an exchange into the database."""
