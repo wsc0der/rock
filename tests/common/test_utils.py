@@ -2,7 +2,7 @@
 
 import sqlite3
 import unittest
-from rock import utils
+from rock.common import utils
 
 class TestUtils(unittest.TestCase):
     """Test cases for the utils module"""

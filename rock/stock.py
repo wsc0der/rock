@@ -6,9 +6,9 @@ This module provides a function to retrieve stock related data.
 from collections.abc import Sequence, Mapping
 from datetime import datetime as dt
 import pandas as pd
-from rock.types import Interval
+from rock.common.types import Interval
 from rock.data import db, web_scraper
-from rock import utils
+from rock.common import utils
 from rock import logger
 
 

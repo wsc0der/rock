@@ -4,7 +4,7 @@ Test cases for web_scraper.py module
 
 import unittest
 from rock.data import web_scraper
-from rock.types import Interval
+from rock.common.types import Interval
 
 
 class TestWebScraper(unittest.TestCase):

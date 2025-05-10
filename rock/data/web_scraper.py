@@ -5,7 +5,7 @@ This module provides a function to retrieve stock related data.
 from collections.abc import Sequence, Mapping
 from pandas import DataFrame
 from efinance import stock
-from rock.types import Interval
+from rock.common.types import Interval
 
 
 INTERVAL_KLT_MAPPING = {
