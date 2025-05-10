@@ -2,11 +2,9 @@
 Test stock.py
 """
 
-from unittest.mock import patch
-from rock import stock
-from tests.base import TestCaseBase
+from unittest import TestCase
 
-class TestStock(TestCaseBase):
+class TestStock(TestCase):
     """Test cases for stock.py module"""
 
     def test_get_history(self) -> None:
