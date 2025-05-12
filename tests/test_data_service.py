@@ -32,16 +32,14 @@ class TestDataService(unittest.TestCase):
         """Test the initialize function."""
         data_service.init_db()
 
-        for module_info in pkgutil.iter_modules(exchange.__path__, exchange.__name__ + '.'):
-            if module_info.name.startswith('exchange'):
-                module = importlib.import_module(module_info.name)
-                with self.subTest(module=module):
-                    # Check if the exchange is inserted into the database
-                    cursor = self.connection.cursor()
-                    cursor.execute(f'''
-                        SELECT * FROM {db.Tables.EXCHANGE}
-                        WHERE name = ? AND acronym = ? AND type = ?
-                    ''', module.METADATA)
-                    result = cursor.fetchone()
-                    self.assertIsNotNone(result, f"Exchange {module.METADATA.name} not found in the database.")
-                    cursor.close()
+        for module in data_service.get_exchange_modules():
+            with self.subTest(module=module):
+                # Check if the exchange is inserted into the database
+                cursor = self.connection.cursor()
+                cursor.execute(f'''
+                    SELECT * FROM {db.Tables.EXCHANGE}
+                    WHERE name = ? AND acronym = ? AND type = ?
+                ''', module.METADATA)
+                result = cursor.fetchone()
+                self.assertIsNotNone(result, f"Exchange {module.METADATA.name} not found in the database.")
+                cursor.close()
