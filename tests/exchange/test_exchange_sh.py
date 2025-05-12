@@ -4,7 +4,7 @@ Test cases for sh_exchange module.
 
 import unittest
 from pandas import DataFrame
-from rock.exchange import sh_exchange as exchange
+from rock.exchange import exchange_sh as exchange
 
 class TestShExchange(unittest.TestCase):
     """Test cases for sh_exchange module"""

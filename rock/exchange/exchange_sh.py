@@ -7,6 +7,14 @@ from enum import IntEnum, StrEnum
 from typing import Type, TypeVar
 import requests
 import pandas as pd
+from .common import ExchangeMeta
+
+
+METADATA = ExchangeMeta(
+    name='Shanghai Stock Exchange',
+    acronym='SSE',
+    type='stock'
+)
 
 
 class StockType(IntEnum):
@@ -32,6 +40,33 @@ class ContentType(StrEnum):
     Enum for raw data types returned by querying SSE endpoints.
     """
     EXCEL = "application/vnd.ms-excel"
+
+
+def get_exchange_name() -> str:
+    """
+    Get the name of the exchange.
+    Returns:
+        str: The name of the exchange.
+    """
+    return 'Shanghai Stock Exchange'
+
+
+def get_exchange_acronym() -> str:
+    """
+    Get the acronym of the exchange.
+    Returns:
+        str: The acronym of the exchange.
+    """
+    return 'SSE'
+
+
+def get_exchange_type() -> str:
+    """
+    Get the type of the exchange.
+    Returns:
+        str: The type of the exchange.
+    """
+    return 'stock'
 
 
 def get_stock_list(types_in: str|list[StockType], status_in: str|list[StockStatus]) -> pd.DataFrame:

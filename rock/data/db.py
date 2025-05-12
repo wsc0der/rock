@@ -79,7 +79,7 @@ def create_db() -> None:
         create_exchange_table()
         create_history_table()
         connection.commit()
-        logger.info('Database %s initialized successfully.', DB_PATH)
+        logger.info('Database %s created successfully.', DB_PATH)
     finally:
         cursor.close()
         connection.close()
