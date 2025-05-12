@@ -66,7 +66,7 @@ class TestLocal(unittest.TestCase):
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security
-        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
+        db.insert_security('000001', 'Ping An Bank', 'stock', '19910403', None, 1)
 
         # Check if the security was inserted successfully
         cursor = self.connection.cursor()
@@ -81,14 +81,15 @@ class TestLocal(unittest.TestCase):
 
         # Test invalid cases
         invalid_cases = [
-            (None, 'None Company', 'stock', 1),     # symbol is None
-            ('', 'Empty Company', 'stock', 1),      # symbol is empty
-            ('000002', None, 'stock', 1),           # name is None
-            ('000003', '', 'stock', 1),             # name is empty
-            ('000001', 'Another Company', 'stock', 1),  # symbol is not unique
-            ('000002', 'Ping An Bank', 'stock', 1),     # name is not unique
-            ('000003', 'Invalid Company', 'invalid_type', 1),    # type is invalid
-            ('000004', 'Second Invalid Company', 'stock', 999)     # exchange_id is not valid
+            (None, 'None Company', 'stock', '19990101', '20010101', 1),     # symbol is None
+            ('', 'Empty Company', 'stock', '19990101', '20010101', 1),      # symbol is empty
+            ('000002', None, 'stock', '19990101', '20010101', 1),           # name is None
+            ('000003', '', 'stock', '19990101', '20010101', 1),             # name is empty
+            ('000001', 'Another Company', 'stock', '19990101', '20010101', 1),  # symbol is not unique
+            ('000002', 'Ping An Bank', 'stock', '19990101', '20010101', 1),     # name is not unique
+            ('000003', 'Invalid Company', 'invalid_type', '19990101', '20010101', 1),   # type is invalid
+            ('000004', 'Second Invalid Company', 'stock', '19990101', '20010101', 999), # exchange_id is not valid
+            ('000005', 'Third Invalid Company', 'stock', '19890101', '19690101', 1),    # listing is after delisting
         ]
 
         for case in invalid_cases:
@@ -102,7 +103,7 @@ class TestLocal(unittest.TestCase):
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security first
-        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
+        db.insert_security('000001', 'Ping An Bank', 'stock', '19990101', '20010101', 1)
 
         # Insert history
         valid_cases = [
@@ -155,7 +156,7 @@ class TestLocal(unittest.TestCase):
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         # Insert a security first
-        db.insert_security('000001', 'Ping An Bank', 'stock', 1)
+        db.insert_security('000001', 'Ping An Bank', 'stock', '19990101', '20010101', 1)
 
         # Insert multiple history
         histories = [
@@ -210,10 +211,10 @@ class TestLocal(unittest.TestCase):
 
         # Insert a security first
         securities = [
-            ('000001', 'Ping An Bank', 'stock', 1),
-            ('000002', 'Another company', 'stock', 1),
-            ('000003', 'Another company 2', 'stock', 1),
-            ('000004', 'Another company 3', 'stock', 1)
+            ('000001', 'Ping An Bank', 'stock', '19990101', '20010101', 1),
+            ('000002', 'Another company', 'stock', '19990101', '20010101', 1),
+            ('000003', 'Another company 2', 'stock', '19990101', '20010101', 1),
+            ('000004', 'Another company 3', 'stock', '19990101', '20010101', 1)
         ]
         for s in securities:
             db.insert_security(*s)
@@ -257,11 +258,11 @@ class TestLocal(unittest.TestCase):
         db.insert_exchange('Shanghai Stock Exchange', 'SSE', 'stock')
 
         data = [
-            (('000001', 'Ping An Bank', 'stock', 1), [
+            (('000001', 'Ping An Bank', 'stock', '19990101', '20010101', 1), [
                 (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),
                 (1, '2025-03-02', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d')
             ]),
-            (('000002', 'Another Company', 'stock', 1), [
+            (('000002', 'Another Company', 'stock', '19990101', '20010101', 1), [
                 (2, '2024-01-04', 9.0, 11.0, 14.0, 12.0, 11.5, 3000, '1d'),
                 (2, '2024-01-05', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d')
             ])

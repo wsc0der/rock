@@ -43,6 +43,8 @@ def create_db() -> None:
                 symbol TEXT NOT NULL UNIQUE CHECK (symbol != ''),
                 name TEXT NOT NULL UNIQUE CHECK (name != ''),
                 type TEXT CHECK (type IN ('stock', 'bond', 'fund')),
+                listing TIMESTAMP NOT NULL DEFAULT 0 CHECK ( listing >= 0),
+                delisting TIMESTAMP DEFAULT NULL CHECK ( delisting > listing),
                 exchange_id INTEGER REFERENCES {Tables.EXCHANGE}(id)
             )
         ''')
@@ -114,30 +116,35 @@ def insert_exchange(name: str, acronym: str, exchange_type: str) -> None:
         connection.close()
 
 
-def insert_security(symbol: str, name: str, symbol_type: str, exchange_id: int) -> None:
+def insert_security(symbol: str, name: str, symbol_type: str, listing: str, delisting: str|None, exchange_id: int) -> None:
     """Insert security data into the database."""
     connection = get_connection()
     try:
         cursor = connection.cursor()
         cursor.execute(f'''
-            INSERT INTO {Tables.SECURITY} (symbol, name, type, exchange_id)
-            VALUES (?, ?, ?, ?)
-        ''', (symbol, name, symbol_type, exchange_id))
+            INSERT INTO {Tables.SECURITY} (symbol, name, type, listing, delisting, exchange_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (symbol, name, symbol_type, dt.fromisoformat(listing),
+              dt.fromisoformat(delisting) if delisting is not None else None,
+              exchange_id))
         connection.commit()
     finally:
         cursor.close()
         connection.close()
 
 
-def insert_securities(securities: list[tuple[str, str, str, int]]) -> None:
+def insert_securities(securities: list[tuple[str, str, str, str, str, int]]) -> None:
     """Insert multiple securities into the database."""
     connection = get_connection()
     try:
         cursor = connection.cursor()
         cursor.executemany(f'''
-            INSERT INTO {Tables.SECURITY} (symbol, name, type, exchange_id)
-            VALUES (?, ?, ?, ?)
-        ''', securities)
+            INSERT INTO {Tables.SECURITY} (symbol, name, type, listing, delisting, exchange_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', [(row[0], row[1], row[2],
+               dt.fromisoformat(row[3]),
+               dt.fromisoformat(row[4]) if row[4] is not None else None,
+               row[5]) for row in securities])
         connection.commit()
     finally:
         cursor.close()
