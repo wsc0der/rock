@@ -42,33 +42,6 @@ class ContentType(StrEnum):
     EXCEL = "application/vnd.ms-excel"
 
 
-def get_exchange_name() -> str:
-    """
-    Get the name of the exchange.
-    Returns:
-        str: The name of the exchange.
-    """
-    return 'Shanghai Stock Exchange'
-
-
-def get_exchange_acronym() -> str:
-    """
-    Get the acronym of the exchange.
-    Returns:
-        str: The acronym of the exchange.
-    """
-    return 'SSE'
-
-
-def get_exchange_type() -> str:
-    """
-    Get the type of the exchange.
-    Returns:
-        str: The type of the exchange.
-    """
-    return 'stock'
-
-
 def get_stock_list(types_in: str|list[StockType], status_in: str|list[StockStatus]) -> pd.DataFrame:
     """
     Get stock list from the Shanghai Stock Exchange (SSE) based on stock types and statuses.
