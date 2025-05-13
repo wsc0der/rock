@@ -60,7 +60,3 @@ class TestDataService(unittest.TestCase):
                 result = cursor.fetchall()
                 self.assertGreater(len(result), 0, f"No securities found for exchange {module.METADATA.name}.")
                 cursor.close()
-
-
-if __name__ == "__main__":
-    unittest.main()
