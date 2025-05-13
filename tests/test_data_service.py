@@ -43,3 +43,24 @@ class TestDataService(unittest.TestCase):
                 result = cursor.fetchone()
                 self.assertIsNotNone(result, f"Exchange {module.METADATA.name} not found in the database.")
                 cursor.close()
+
+    def test_update_securities(self):
+        """Test the update_securities function."""
+        data_service.init_db()
+        data_service.update_securities()
+
+        for module in data_service.get_exchange_modules():
+            with self.subTest(module=module):
+                # Check if the securities are inserted into the database
+                cursor = self.connection.cursor()
+                cursor.execute(f'''
+                    SELECT * FROM {db.Tables.SECURITY}
+                    WHERE exchange_id = ?
+                ''', (db.get_exchange_id(module.METADATA.acronym),))
+                result = cursor.fetchall()
+                self.assertGreater(len(result), 0, f"No securities found for exchange {module.METADATA.name}.")
+                cursor.close()
+
+
+if __name__ == "__main__":
+    unittest.main()

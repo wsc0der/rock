@@ -4,10 +4,10 @@ This modules provides functions for getting data from SSE.
 """
 from io import BytesIO
 from enum import IntEnum, StrEnum
-from typing import Type, TypeVar
+from typing import Type, TypeVar, Sequence
 import requests
 import pandas as pd
-from .common import ExchangeMeta
+from .common import ExchangeMeta, StockMeta
 
 
 METADATA = ExchangeMeta(
@@ -40,6 +40,20 @@ class ContentType(StrEnum):
     Enum for raw data types returned by querying SSE endpoints.
     """
     EXCEL = "application/vnd.ms-excel"
+
+
+def get_a_shares() -> Sequence[StockMeta]:
+    """Get A shares from the Shanghai Stock Exchange (SSE)."""
+    d = get_stock_list([StockType.A], [StockStatus.NORMAL, StockStatus.ST])
+    return [
+        StockMeta(
+            symbol=row['原公司代码'],
+            name=row['原公司简称'],
+            listing=str(row['上市日期']),
+            delisting=str(row['终止上市日期']) if row['终止上市日期'] != '-' else None
+        )
+        for _, row in d.iterrows()
+    ]
 
 
 def get_stock_list(types_in: str|list[StockType], status_in: str|list[StockStatus]) -> pd.DataFrame:

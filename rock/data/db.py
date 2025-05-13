@@ -125,7 +125,7 @@ def insert_security(symbol: str, name: str, symbol_type: str, listing: str, deli
             INSERT INTO {Tables.SECURITY} (symbol, name, type, listing, delisting, exchange_id)
             VALUES (?, ?, ?, ?, ?, ?)
         ''', (symbol, name, symbol_type, dt.fromisoformat(listing),
-              dt.fromisoformat(delisting) if delisting is not None else None,
+              None if delisting is None else dt.fromisoformat(delisting),
               exchange_id))
         connection.commit()
     finally:
@@ -169,6 +169,21 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
             INSERT INTO {Tables.HISTORY} (security_id, datetime, open, close, high, low, adj_close, volume, frequency)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', transformed_history)
+        connection.commit()
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def update_security(symbol: str, delisting: str) -> None:
+    """Update security data in the database."""
+    connection = get_connection()
+    try:
+        cursor = connection.cursor()
+        cursor.execute(f'''
+            UPDATE {Tables.SECURITY} SET delisting = ?
+            WHERE symbol = ?
+        ''', (dt.fromisoformat(delisting), symbol))
         connection.commit()
     finally:
         cursor.close()
@@ -224,6 +239,22 @@ def get_history(symbols: str|list[str], start: str|None = None,
             result[symbol] = history
 
         return result
+    finally:
+        cursor.close()
+        connection.close()
+
+def get_exchange_id(acronym: str) -> int|None:
+    """Get exchange ID from the database."""
+    connection = get_connection()
+    try:
+        cursor = connection.cursor()
+        cursor.execute(f'''
+            SELECT id FROM {Tables.EXCHANGE} WHERE acronym = ?
+        ''', (acronym,))
+        result = cursor.fetchone()
+        if result:
+            return result['id']
+        return None
     finally:
         cursor.close()
         connection.close()

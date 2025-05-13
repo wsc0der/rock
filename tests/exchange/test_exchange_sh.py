@@ -50,3 +50,15 @@ class TestShExchange(unittest.TestCase):
             with self.subTest():
                 with self.assertRaises(ValueError):
                     exchange.get_stock_list(*case)  # type: ignore
+
+    def test_get_a_shares(self) -> None:
+        """Test function."""
+        a_shares = exchange.get_a_shares()
+        self.assertTrue(
+            isinstance(a_shares, list),
+            "A shares should be a list"
+        )
+        self.assertTrue(
+            all(isinstance(share, exchange.StockMeta) for share in a_shares),
+            "All items in A shares should be StockMeta instances"
+        )
