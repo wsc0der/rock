@@ -34,18 +34,20 @@ def update_securities() -> bool:
             try:
                 stock_list = module.get_a_shares()
                 exchange_id = db.get_exchange_id(module.METADATA.acronym)
+                insert_list = []
                 for stock in stock_list:
                     security = db.get_security(stock.symbol)
                     if not security:
-                        db.insert_security(stock.symbol, stock.name, 'stock',
+                        insert_list.append((stock.symbol, stock.name, 'stock',
                                            stock.listing,
-                                           None if stock.delisting is None else stock.delisting,
-                                           exchange_id)
+                                           stock.delisting,
+                                           exchange_id))
                     elif security['delisting'] is None and stock.delisting is not None:
                         db.update_security(stock.symbol, stock.delisting)
                     else:
                         # security already exists and is not delisted
                         continue
+                db.insert_securities(insert_list)
             except Exception as e:  # pylint: disable=W0718
                 logger.error("Error updating securities from %s: %s", module.__name__, e)
                 logger.error("stock_list: %s", stock)
