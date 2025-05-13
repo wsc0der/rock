@@ -2,9 +2,7 @@
 
 import unittest
 import os
-import pkgutil
-import importlib
-from rock import data_service, exchange
+from rock import data_service
 from rock.data import db
 
 
