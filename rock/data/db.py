@@ -116,7 +116,8 @@ def insert_exchange(name: str, acronym: str, exchange_type: str) -> None:
         connection.close()
 
 
-def insert_security(symbol: str, name: str, symbol_type: str, listing: str, delisting: str|None, exchange_id: int) -> None:
+def insert_security(symbol: str, name: str, symbol_type: str, listing: str,
+                    delisting: str|None, exchange_id: int) -> None:
     """Insert security data into the database."""
     connection = get_connection()
     try:
@@ -175,7 +176,7 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
         connection.close()
 
 
-def update_security(symbol: str, delisting: str) -> None:
+def update_security_delisting(symbol: str, delisting: str) -> None:
     """Update security data in the database."""
     connection = get_connection()
     try:

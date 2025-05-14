@@ -43,7 +43,7 @@ def update_securities() -> bool:
                                            stock.delisting,
                                            exchange_id))
                     elif security['delisting'] is None and stock.delisting is not None:
-                        db.update_security(stock.symbol, stock.delisting)
+                        db.update_security_delisting(stock.symbol, stock.delisting)
                     else:
                         # security already exists and is not delisted
                         continue
