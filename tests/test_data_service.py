@@ -1,7 +1,9 @@
 """Test cases for the data_service module."""
 
 import unittest
+from unittest.mock import patch
 import os
+import pandas as pd
 from rock import data_service
 from rock.data import db
 
@@ -58,3 +60,19 @@ class TestDataService(unittest.TestCase):
                 result = cursor.fetchall()
                 self.assertGreater(len(result), 0, f"No securities found for exchange {module.METADATA.name}.")
                 cursor.close()
+
+    @patch('rock.data.db.bulk_insert_history')
+    @patch('rock.data.db.get_all_securities')
+    @patch('rock.data.web_scraper.get_history')
+    def test_update_histories(self, mock_get_history, mock_get_all_securities, mock_bulk_insert_history):
+        """Test the update_histories function."""
+        mock_get_history.return_value = {
+            '000001': pd.DataFrame({'日期': '2025-03-01', '开盘': 1, '收盘': 2, '最高': 3, '最低': 0, '成交量': 10}, index=[0]),
+            '000002': pd.DataFrame({'日期': '2025-03-01', '开盘': 1, '收盘': 2, '最高': 3, '最低': 0, '成交量': 10}, index=[0])
+        }
+        mock_get_all_securities.return_value = [
+            {'symbol': '000001', 'exchange_id': 1, 'id': 1},
+            {'symbol': '000002', 'exchange_id': 1, 'id': 2}
+        ]
+        data_service.update_histories()
+        self.assertEqual(mock_bulk_insert_history.call_count, 2)

@@ -23,6 +23,8 @@ class TestWebScraper(unittest.TestCase):
                 history = web_scraper.get_history(*case)  # type: ignore
                 self.assertTrue(all(s in history.keys() for s in case[0]),
                                 "All symbols should be present in the history")
+                self.assertTrue(all(not history[s].empty for s in case[0]),
+                                "All symbols should have non-empty history")
 
         invalid_cases = [
             (['000001', ''], Interval.ONE_MINUTE, 1234, 0),

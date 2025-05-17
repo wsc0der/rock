@@ -191,6 +191,21 @@ def update_security_delisting(symbol: str, delisting: str) -> None:
         connection.close()
 
 
+def get_all_securities() -> list[sqlite3.Row]:
+    """Get all security data from the database."""
+    connection = get_connection()
+    try:
+        cursor = connection.cursor()
+        cursor.execute(f'''
+            SELECT * FROM {Tables.SECURITY}
+        ''')
+        result = cursor.fetchall()
+        return result
+    finally:
+        cursor.close()
+        connection.close()
+
+
 def get_security(symbols: str|list[str]) -> sqlite3.Row|list[sqlite3.Row]|None:
     """Get security data from the database."""
     return _get_data_from_table(Tables.SECURITY, 'symbol', symbols)

@@ -4,7 +4,7 @@ import pkgutil
 import importlib
 from typing import Generator
 from types import ModuleType
-from rock.data import db
+from rock.data import db, web_scraper
 from rock import exchange
 from rock import logger
 
@@ -58,6 +58,28 @@ def update_securities() -> bool:
 
 def update_histories() -> bool:
     """Update the historical data in the database."""
+    securities = db.get_all_securities()
+    logger.info("Updating historical data...")
+    histories = web_scraper.get_history(
+        [security['symbol'] for security in securities]
+    )
+    for security in securities:
+        history = histories.get(security['symbol'])
+        if not history.empty:
+            db.bulk_insert_history((
+                security['id'],
+                row.日期,
+                row.开盘,
+                row.收盘,
+                row.最高,
+                row.最低,
+                row.收盘,
+                row.成交量,
+                web_scraper.Interval.ONE_DAY,
+            ) for row in history.itertuples(index=False))
+        else:
+            logger.warning("No history data for %s", security['symbol'])
+    logger.info("Historical data updated.")
 
 
 def get_exchange_modules() -> Generator[ModuleType, None, None]:
