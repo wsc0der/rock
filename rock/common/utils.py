@@ -17,9 +17,9 @@ def get_epoch_date():
 
 def compare_dates(date1: str, date2: str) -> int:
     """Compare two dates in YYYY-MM-DD format."""
-    date1 = datetime.strptime(date1, '%Y-%m-%d')
-    date2 = datetime.strptime(date2, '%Y-%m-%d')
-    return (date1 > date2) - (date1 < date2)
+    d1 = datetime.strptime(date1, '%Y-%m-%d')
+    d2 = datetime.strptime(date2, '%Y-%m-%d')
+    return (d1 > d2) - (d1 < d2)
 
 if __name__ == '__main__':
     print(sqlite3.sqlite_version)

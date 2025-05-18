@@ -103,8 +103,8 @@ def get_connection() -> sqlite3.Connection:
 def insert_exchange(name: str, acronym: str, exchange_type: str) -> None:
     """Insert exchange data into the database."""
     connection = get_connection()
+    cursor = connection.cursor()
     try:
-        cursor = connection.cursor()
         cursor.execute(f'''
             INSERT INTO {Tables.EXCHANGE} (name, acronym, type)
             VALUES (?, ?, ?)
@@ -120,8 +120,8 @@ def insert_security(symbol: str, name: str, symbol_type: str, listing: str,
                     delisting: str|None, exchange_id: int) -> None:
     """Insert security data into the database."""
     connection = get_connection()
+    cursor = connection.cursor()
     try:
-        cursor = connection.cursor()
         cursor.execute(f'''
             INSERT INTO {Tables.SECURITY} (symbol, name, type, listing, delisting, exchange_id)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -137,8 +137,8 @@ def insert_security(symbol: str, name: str, symbol_type: str, listing: str,
 def insert_securities(securities: list[tuple[str, str, str, str, str, int]]) -> None:
     """Insert multiple securities into the database."""
     connection = get_connection()
+    cursor = connection.cursor()
     try:
-        cursor = connection.cursor()
         cursor.executemany(f'''
             INSERT INTO {Tables.SECURITY} (symbol, name, type, listing, delisting, exchange_id)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -164,8 +164,8 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
     """Insert multiple history into the database."""
     connection = get_connection()
     transformed_history = ((item[0], dt.fromisoformat(item[1]), *item[2:]) for item in history)
+    cursor = connection.cursor()
     try:
-        cursor = connection.cursor()
         cursor.executemany(f'''
             INSERT INTO {Tables.HISTORY} (security_id, datetime, open, close, high, low, adj_close, volume, frequency)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -179,8 +179,8 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
 def update_security_delisting(symbol: str, delisting: str) -> None:
     """Update security data in the database."""
     connection = get_connection()
+    cursor = connection.cursor()
     try:
-        cursor = connection.cursor()
         cursor.execute(f'''
             UPDATE {Tables.SECURITY} SET delisting = ?
             WHERE symbol = ?
@@ -194,8 +194,8 @@ def update_security_delisting(symbol: str, delisting: str) -> None:
 def get_all_securities() -> list[sqlite3.Row]:
     """Get all security data from the database."""
     connection = get_connection()
+    cursor = connection.cursor()
     try:
-        cursor = connection.cursor()
         cursor.execute(f'''
             SELECT * FROM {Tables.SECURITY}
         ''')
@@ -229,8 +229,8 @@ def get_history(symbols: str|list[str], start: str|None = None,
     e = dt.fromisoformat(end) if end else None
 
     connection = get_connection()
+    cursor = connection.cursor()
     try:
-        cursor = connection.cursor()
         result = {}
         for symbol in symbols:
             cursor.execute(f'''
@@ -262,8 +262,8 @@ def get_history(symbols: str|list[str], start: str|None = None,
 def get_exchange_id(acronym: str) -> int|None:
     """Get exchange ID from the database."""
     connection = get_connection()
+    cursor = connection.cursor()
     try:
-        cursor = connection.cursor()
         cursor.execute(f'''
             SELECT id FROM {Tables.EXCHANGE} WHERE acronym = ?
         ''', (acronym,))
@@ -287,8 +287,8 @@ def _get_data_from_table(table: str, field: str, value_in: Any|list[Any]) -> sql
         return None
 
     connection = get_connection()
+    cursor = connection.cursor()
     try:
-        cursor = connection.cursor()
         cursor.execute(f'''
             SELECT * FROM {table} WHERE {field} IN ({','.join(['?'] * len(value))})
         ''', value)

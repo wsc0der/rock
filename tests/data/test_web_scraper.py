@@ -1,3 +1,4 @@
+# type: ignore
 """
 Test cases for web_scraper.py module
 """
@@ -20,7 +21,7 @@ class TestWebScraper(unittest.TestCase):
 
         for case in valid_cases:
             with self.subTest():
-                history = web_scraper.get_history(*case)  # type: ignore
+                history = web_scraper.get_history(*case)
                 self.assertTrue(all(s in history.keys() for s in case[0]),
                                 "All symbols should be present in the history")
                 self.assertTrue(all(not history[s].empty for s in case[0]),

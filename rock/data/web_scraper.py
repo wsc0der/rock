@@ -4,7 +4,7 @@ This module provides a function to retrieve stock related data.
 """
 from collections.abc import Sequence, Mapping
 from pandas import DataFrame
-from efinance import stock
+from efinance import stock  # type: ignore
 from rock.common.types import Interval
 
 

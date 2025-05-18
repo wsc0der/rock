@@ -4,6 +4,7 @@ import pkgutil
 import importlib
 from typing import Generator
 from types import ModuleType
+from sqlite3 import Row
 from rock.data import db, web_scraper
 from rock import exchange
 from rock import logger
@@ -21,7 +22,7 @@ def init_db() -> None:
     logger.info("Database initialized successfully.")
 
 
-def update_securities() -> bool:
+def update_securities() -> None:
     """Update the securities in the database."""
     logger.info("Updating securities...")
 
@@ -36,7 +37,7 @@ def update_securities() -> bool:
                 exchange_id = db.get_exchange_id(module.METADATA.acronym)
                 insert_list = []
                 for stock in stock_list:
-                    security = db.get_security(stock.symbol)
+                    security: Row|None = db.get_security(stock.symbol)  # type: ignore
                     if not security:
                         insert_list.append((stock.symbol, stock.name, 'stock',
                                            stock.listing,
@@ -50,13 +51,12 @@ def update_securities() -> bool:
                 db.insert_securities(insert_list)
             except Exception as e:  # pylint: disable=W0718
                 logger.error("Error updating securities from %s: %s", module.__name__, e)
-                logger.error("stock_list: %s", stock)
                 continue
 
     logger.info("Securities updated.")
 
 
-def update_histories() -> bool:
+def update_histories() -> None:
     """Update the historical data in the database."""
     securities = db.get_all_securities()
     logger.info("Updating historical data...")
@@ -64,25 +64,25 @@ def update_histories() -> bool:
         [security['symbol'] for security in securities]
     )
     for security in securities:
-        history = histories.get(security['symbol'])
+        history = histories[security['symbol']]
         if not history.empty:
-            db.bulk_insert_history((
-                security['id'],
-                row.日期,
-                row.开盘,
-                row.收盘,
-                row.最高,
-                row.最低,
-                row.收盘,
-                row.成交量,
+            db.bulk_insert_history([(
+                int(security['id']),
+                str(row.日期),
+                float(row.开盘),    # type: ignore
+                float(row.收盘),    # type: ignore
+                float(row.最高),    # type: ignore
+                float(row.最低),    # type: ignore
+                float(row.收盘),    # type: ignore
+                int(row.成交量),    # type: ignore
                 web_scraper.Interval.ONE_DAY,
-            ) for row in history.itertuples(index=False))
+            ) for row in history.itertuples(index=False)])
         else:
             logger.warning("No history data for %s", security['symbol'])
     logger.info("Historical data updated.")
 
 
-def get_exchange_modules() -> Generator[ModuleType, None, None]:
+def get_exchange_modules() -> Generator[ModuleType, None,None]:
     """Get all exchange modules."""
     for module_info in pkgutil.iter_modules(exchange.__path__, exchange.__name__ + '.'):
         if module_info.name.split('.')[-1].startswith('exchange'):
