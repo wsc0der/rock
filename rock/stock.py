@@ -24,13 +24,6 @@ def get_history(symboles: Sequence[str],
     Returns:
         Mapping[str, DataFrame]: A dictionary of DataFrames containing historical data for each symbol.
     """
-    # Get securities from the local database
-    # securities = db.get_security(symboles)
-
-    # # Log missing securities
-    # missing = [s for s in symboles if s not in {item['symbol'] for item in securities}]
-    # logger.info("Missing securities: %s", missing)
-
     if start is None:
         start = utils.get_epoch_date()
     if end is None:
@@ -44,13 +37,11 @@ def get_history(symboles: Sequence[str],
             logger.warning("No history found for %s", s)
             continue
         # Convert to DataFrame
-        df = pd.DataFrame(h)
-        # Convert date column to datetime
-        df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
-        # Set date as index
-        df.set_index('date', inplace=True)
+        df = pd.DataFrame([dict(row) for row in h])
+        # Drop columns
+        df.drop(columns=['security_id', 'frequency'], inplace=True)
         # Sort by date
-        df.sort_index(inplace=True)
+        df.sort_values(by='datetime', inplace=True)
         # Add to result
         result[s] = df
     return result
