@@ -108,8 +108,8 @@ class TestLocal(unittest.TestCase):
 
         # Insert history
         valid_cases = [
-            (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),
-            (1, '2025-03-01 10:30:12', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d')
+            (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),
+            (1, '2025-03-01 10:30:12', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d')
         ]
         for case in valid_cases:
             db.insert_history(*case)
@@ -126,24 +126,24 @@ class TestLocal(unittest.TestCase):
 
         # Test invalid cases
         invalid_cases = [
-            (IntegrityError, None, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),  # security_id is None
-            (TypeError, 0, None, 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),                  # date is None
-            (ValueError, 1, '', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),                   # date is empty
-            (ValueError, 1, 'abcd', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),               # date not in valid format
-            (TypeError, 1, 999, 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),                   # date is not a string
-            (IntegrityError, 0, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),     # security_id is invalid
-            (IntegrityError, 999, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),   # security_id is invalid
-            (IntegrityError, 1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),     # primary key is duplicated
-            (IntegrityError, 1, '2025-03-02', None, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),     # open_price is None
-            (IntegrityError, 1, '2025-03-02', 10.0, None, 12.0, 9.0, 10.5, 1000, '1d'),     # close_price is None
-            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, None, 9.0, 10.5, 1000, '1d'),     # high_price is None
-            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, None, 10.5, 1000, '1d'),    # low_price is None
-            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, None, 1000, '1d'),     # adj_close is None
-            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, None, '1d'),     # volume is None
-            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, -1000, '1d'),    # volume is negative
-            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, None),     # frequency is None
-            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, ''),       # frequency is empty
-            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 'invalid') # frequency is invalid
+            (IntegrityError, None, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),  # security_id is None
+            (TypeError, 0, None, 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),                  # date is None
+            (ValueError, 1, '', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),                   # date is empty
+            (ValueError, 1, 'abcd', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),           # date not in valid format
+            (TypeError, 1, 999, 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),                 # date is not a string
+            (IntegrityError, 0, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),   # security_id is invalid
+            (IntegrityError, 999, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'), # security_id is invalid
+            (IntegrityError, 1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),# primary key is duplicated
+            (IntegrityError, 1, '2025-03-02', None, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),     # open_price is None
+            (IntegrityError, 1, '2025-03-02', 10.0, None, 12.0, 9.0, 10.5, 1000, 1000, '1d'),     # close_price is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, None, 9.0, 10.5, 1000, 1000, '1d'),     # high_price is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, None, 10.5, 1000, 1000, '1d'),    # low_price is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, None, 1000, 1000, '1d'),     # adj_close is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, None, 1000, '1d'),     # volume is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, -1000, 1000, '1d'),    # volume is negative
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, None),     # frequency is None
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, ''),       # frequency is empty
+            (IntegrityError, 1, '2025-03-02', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, 'invalid') # frequency is invalid
         ]
 
         for case in invalid_cases:
@@ -161,8 +161,8 @@ class TestLocal(unittest.TestCase):
 
         # Insert multiple history
         histories = [
-            (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),
-            (1, '2025-03-02', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d')
+            (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),
+            (1, '2025-03-02', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, 1000, '1d')
         ]
         db.bulk_insert_history(histories)
 
@@ -183,8 +183,8 @@ class TestLocal(unittest.TestCase):
 
         # Test invalid case
         invalid_case = [
-            (1, '2025-03-03', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),
-            (2, '2025-03-03', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d'),
+            (1, '2025-03-03', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),
+            (2, '2025-03-03', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, 1000, '1d'),
         ]
 
         with self.assertRaises(IntegrityError):
@@ -197,8 +197,8 @@ class TestLocal(unittest.TestCase):
 
         # Test invalid datetime
         invalid_datetime = [
-            (1, '', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),   # date is empty
-            (1, '2025-03-03', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'), # frequency is None
+            (1, '', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),   # date is empty
+            (1, '2025-03-03', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'), # frequency is None
         ]
 
         with self.assertRaises(ValueError):
@@ -260,12 +260,12 @@ class TestLocal(unittest.TestCase):
 
         data = [
             (('000001', 'Ping An Bank', 'stock', '19990101', '20010101', 1), [
-                (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, '1d'),
-                (1, '2025-03-02', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d')
+                (1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),
+                (1, '2025-03-02', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, 1000, '1d')
             ]),
             (('000002', 'Another Company', 'stock', '19990101', '20010101', 1), [
-                (2, '2024-01-04', 9.0, 11.0, 14.0, 12.0, 11.5, 3000, '1d'),
-                (2, '2024-01-05', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, '1d')
+                (2, '2024-01-04', 9.0, 11.0, 14.0, 12.0, 11.5, 3000, 1000, '1d'),
+                (2, '2024-01-05', 11.0, 12.0, 13.0, 10.0, 11.5, 2000, 1000, '1d')
             ])
         ]
         # Insert securities

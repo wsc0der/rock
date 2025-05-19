@@ -13,6 +13,15 @@ from rock import logger
 DB_NAME = 'rock.db'
 DB_PATH = os.path.expanduser(f'~/rockdb/{DB_NAME}')
 
+def adapt_datetime_epoch(val):
+    """Adapt datetime to Unix timestamp."""
+    return int(val.timestamp())
+def convert_epoch_datetime(val):
+    """Convert Unix timestamp to datetime."""
+    return dt.fromtimestamp(int(val))
+sqlite3.register_adapter(dt, adapt_datetime_epoch)
+sqlite3.register_converter("timestamp", convert_epoch_datetime)
+
 
 class Tables(StrEnum):
     """Table names."""
@@ -26,15 +35,6 @@ def create_db() -> None:
     if db_exist():
         print(f'Database {DB_PATH} is already exist.')
         return
-
-    def adapt_datetime_epoch(val):
-        """Adapt datetime to Unix timestamp."""
-        return int(val.timestamp())
-    def convert_epoch_datetime(val):
-        """Convert Unix timestamp to datetime."""
-        return dt.fromtimestamp(int(val))
-    sqlite3.register_adapter(dt, adapt_datetime_epoch)
-    sqlite3.register_converter("timestamp", convert_epoch_datetime)
 
     def create_security_table():
         cursor.execute(f'''
@@ -68,6 +68,7 @@ def create_db() -> None:
                 low REAL NOT NULL,
                 adj_close REAL NOT NULL,
                 volume INTEGER NOT NULL CHECK (volume >= 0),
+                amount INTEGER NOT NULL CHECK (amount >= 0),
                 frequency TEXT NOT NULL CHECK (frequency IN ('1m', '1d')),
                 PRIMARY KEY (security_id, datetime)
             )
@@ -153,22 +154,24 @@ def insert_securities(securities: list[tuple[str, str, str, str, str, int]]) -> 
 
 
 def insert_history(security_id: int, date: str, open_price: float, close_price: float,
-                  high_price: float, low_price: float, adj_close: float, volume: int, frequency: str) -> None:
+                  high_price: float, low_price: float, adj_close: float, volume: int,
+                  amount: int, frequency: str) -> None:
     """Insert history data into the database."""
     bulk_insert_history([
-        (security_id, date, open_price, close_price, high_price, low_price, adj_close, volume, frequency)
+        (security_id, date, open_price, close_price, high_price, low_price, adj_close, volume, amount, frequency)
     ])
 
 
-def bulk_insert_history(history: list[tuple[int, str, float, float, float, float, float, int, str]]) -> None:
+def bulk_insert_history(history: list[tuple[int, str, float, float, float, float, float, int, int, str]]) -> None:
     """Insert multiple history into the database."""
     connection = get_connection()
     transformed_history = ((item[0], dt.fromisoformat(item[1]), *item[2:]) for item in history)
     cursor = connection.cursor()
     try:
         cursor.executemany(f'''
-            INSERT INTO {Tables.HISTORY} (security_id, datetime, open, close, high, low, adj_close, volume, frequency)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO {Tables.HISTORY}
+                (security_id, datetime, open, close, high, low, adj_close, volume, amount, frequency)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', transformed_history)
         connection.commit()
     finally:

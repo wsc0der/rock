@@ -75,6 +75,7 @@ def update_histories() -> None:
                 float(row.最低),    # type: ignore
                 float(row.收盘),    # type: ignore
                 int(row.成交量),    # type: ignore
+                int(row.成交额),    # type: ignore
                 web_scraper.Interval.ONE_DAY,
             ) for row in history.itertuples(index=False)])
         else:
