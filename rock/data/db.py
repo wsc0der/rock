@@ -169,7 +169,7 @@ def bulk_insert_history(history: list[tuple[int, str, float, float, float, float
     cursor = connection.cursor()
     try:
         cursor.executemany(f'''
-            INSERT INTO {Tables.HISTORY}
+            INSERT OR REPLACE INTO {Tables.HISTORY}
                 (security_id, datetime, open, close, high, low, adj_close, volume, amount, frequency)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', transformed_history)
