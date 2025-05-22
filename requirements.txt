@@ -8,4 +8,4 @@ types-requests~=2.32.0.20250328
 pandas~=2.2.3
 pandas-stubs~=2.2.3.250308
 
--e ./efinance
+git+ssh://git@github.com/wsc0der/efinance.git@main#egg=efinance

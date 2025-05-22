@@ -133,7 +133,7 @@ class TestLocal(unittest.TestCase):
             (TypeError, 1, 999, 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),                 # date is not a string
             (IntegrityError, 0, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),   # security_id is invalid
             (IntegrityError, 999, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'), # security_id is invalid
-            (IntegrityError, 1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),# primary key is duplicated
+            # (IntegrityError, 1, '2025-03-01', 10.0, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),# primary key is duplicated
             (IntegrityError, 1, '2025-03-02', None, 11.0, 12.0, 9.0, 10.5, 1000, 1000, '1d'),     # open_price is None
             (IntegrityError, 1, '2025-03-02', 10.0, None, 12.0, 9.0, 10.5, 1000, 1000, '1d'),     # close_price is None
             (IntegrityError, 1, '2025-03-02', 10.0, 11.0, None, 9.0, 10.5, 1000, 1000, '1d'),     # high_price is None

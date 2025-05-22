@@ -7,6 +7,8 @@ RUN apt update \
     && apt install -y git \
     && apt install -y make
 
+RUN python -m pip install --upgrade pip setuptools wheel
+
 
 # Create a non-root user with configurable UID and GID
 ARG USERNAME=devuser
