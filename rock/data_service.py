@@ -91,7 +91,8 @@ def get_exchange_modules() -> Generator[ModuleType, None,None]:
             yield module
 
 
-if __name__ == "__main__":
+def run() -> None:
+    """Run the data service."""
     if not db.db_exist():
         db.create_db()
         init_db()
