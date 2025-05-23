@@ -4,7 +4,7 @@ import pkgutil
 import importlib
 from typing import Generator
 from types import ModuleType
-from sqlite3 import Row
+from sqlite3 import Row, Error
 from rock.data import db, web_scraper
 from rock import exchange
 from rock import logger
@@ -37,7 +37,7 @@ def update_securities() -> None:
                 exchange_id = db.get_exchange_id(module.METADATA.acronym)
                 insert_list = []
                 for stock in stock_list:
-                    security: Row|None = db.get_security(stock.symbol)  # type: ignore
+                    security: Row|None = db.get_security(str(stock.symbol))  # type: ignore
                     if not security:
                         insert_list.append((stock.symbol, stock.name, 'stock',
                                            stock.listing,
@@ -49,7 +49,7 @@ def update_securities() -> None:
                         # security already exists and is not delisted
                         continue
                 db.insert_securities(insert_list)
-            except Exception as e:  # pylint: disable=W0718
+            except Error as e:  # pylint: disable=W0718
                 logger.error("Error updating securities from %s: %s", module.__name__, e)
                 continue
 
