@@ -46,7 +46,7 @@
 
 	// Uncomment the next line to run commands after the container is created.
 	// "postCreateCommand": "cat /etc/os-release",
-	"postCreateCommand": "pip install --no-cache-dir -r requirements.txt"
+	"postCreateCommand": "pip install --no-cache-dir ."
 
 
 
