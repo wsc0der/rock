@@ -11,9 +11,7 @@ dependencies = [
     "matplotlib==3.9.3",
     "xlrd==2.0.1",
     "requests~=2.32.3",
-    "types-requests~=2.32.0.20250328",
     "pandas~=2.2.3",
-    "pandas-stubs~=2.2.3.250308",
     "efinance @ git+ssh://git@github.com/wsc0der/efinance.git",
 ]
 
