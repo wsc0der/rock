@@ -7,7 +7,7 @@ from types import ModuleType
 from sqlite3 import Row, Error
 from rock.data import db, web_scraper
 from rock import exchange
-from rock import logger
+from rock.logger import logger
 
 
 def init_db() -> None:

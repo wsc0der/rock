@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from typing import Any
 from enum import StrEnum
 from datetime import datetime as dt
-from rock import logger
+from rock.logger import logger
 
 
 DB_NAME = 'rock.db'

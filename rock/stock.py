@@ -7,7 +7,7 @@ from collections.abc import Sequence, Mapping
 import pandas as pd
 from rock.data import db
 from rock.common import utils
-from rock import logger
+from rock.logger import logger
 
 
 def get_history(symboles: Sequence[str],
