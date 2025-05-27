@@ -68,14 +68,14 @@ def update_histories() -> None:
         if not history.empty:
             db.bulk_insert_history([(
                 int(security['id']),
-                str(row.日期),
-                float(row.开盘),    # type: ignore
-                float(row.收盘),    # type: ignore
-                float(row.最高),    # type: ignore
-                float(row.最低),    # type: ignore
-                float(row.收盘),    # type: ignore
-                int(row.成交量),    # type: ignore
-                int(row.成交额),    # type: ignore
+                str(row.datetime),
+                float(row.open),    # type: ignore
+                float(row.close),    # type: ignore
+                float(row.high),    # type: ignore
+                float(row.low),    # type: ignore
+                float(row.adj_close),    # type: ignore
+                int(row.volume),    # type: ignore
+                int(row.amount),    # type: ignore
                 web_scraper.Interval.ONE_DAY,
             ) for row in history.itertuples(index=False)])
         else:
@@ -99,3 +99,7 @@ def run() -> None:
 
     update_securities()
     update_histories()
+
+
+if __name__ == "__main__":
+    run()

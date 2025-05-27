@@ -4,9 +4,10 @@ This module provides a function to retrieve stock related data.
 """
 from collections.abc import Sequence, Mapping
 from pandas import DataFrame
-from efinance import stock
+from efinance import stock, config as ef_config
 from rock.common.types import Interval
 
+ef_config.MAX_CONNECTIONS = 10
 
 INTERVAL_KLT_MAPPING = {
     Interval.ONE_MINUTE: 1,
@@ -39,7 +40,7 @@ def get_history(symboles: Sequence[str],
     end = str(end).replace('-', '') if end is not None else '20500101'
 
     klt = INTERVAL_KLT_MAPPING.get(interval, 101)
-    return stock.get_quote_history(
+    not_adjusted = stock.get_quote_history(
         list(symboles),
         start,
         end,
@@ -49,3 +50,32 @@ def get_history(symboles: Sequence[str],
         True,
         True
     )
+
+    adjusted = stock.get_quote_history(
+        list(symboles),
+        start,
+        end,
+        klt,
+        1,
+        None,
+        True,
+        True
+    )
+
+    result = {}
+    for s in symboles:
+        not_adjusted_df = not_adjusted[s].set_index('日期', drop=False)
+        adjusted_df = adjusted[s].set_index('日期', drop=False)
+        result[s] = DataFrame({
+            'name': not_adjusted_df['股票名称'],
+            'datetime': not_adjusted_df['日期'],
+            'open': not_adjusted_df['开盘'],
+            'high': not_adjusted_df['最高'],
+            'low': not_adjusted_df['最低'],
+            'close': not_adjusted_df['收盘'],
+            'adj_close': adjusted_df['收盘'],
+            'volume': not_adjusted_df['成交量'],
+            'amount': not_adjusted_df['成交额']
+        })
+
+    return result

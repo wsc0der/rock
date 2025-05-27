@@ -67,11 +67,11 @@ class TestDataService(unittest.TestCase):
     def test_update_histories(self, mock_get_history, mock_get_all_securities, mock_bulk_insert_history):
         """Test the update_histories function."""
         mock_get_history.return_value = {
-            '000001': pd.DataFrame({'日期': '2025-03-01', '开盘': 1, '收盘': 2, '最高': 3,
-                                    '最低': 0, '成交量': 10, '成交额': 100}, index=[0]),
+            '000001': pd.DataFrame({'datetime': '2025-03-01', 'open': 1, 'close': 2, 'adj_close': 2, 'high': 3,
+                                    'low': 0, 'volume': 10, 'amount': 100}, index=[0]),
             '000002':
-                pd.DataFrame({'日期': '2025-03-01', '开盘': 1, '收盘': 2, '最高': 3,
-                              '最低': 0, '成交量': 10, '成交额': 100}, index=[0])
+                pd.DataFrame({'datetime': '2025-03-01', 'open': 1, 'close': 2, 'adj_close': 2, 'high': 3,
+                              'low': 0, 'volume': 10, 'amount': 100}, index=[0])
         }
         mock_get_all_securities.return_value = [
             {'symbol': '000001', 'exchange_id': 1, 'id': 1},
