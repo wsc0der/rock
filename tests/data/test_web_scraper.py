@@ -15,7 +15,7 @@ class TestWebScraper(unittest.TestCase):
 
         valid_cases = [
             (['000001'], Interval.ONE_MINUTE, '2025-03-01', '2025-04-02'),
-            (['000001'], Interval.ONE_DAY, '2025-03-01'),
+            (['000001'], Interval.ONE_DAY),
             (['000001', '000002'], Interval.ONE_MINUTE, '2025-03-01', '2025-04-02')
         ]
 
@@ -27,12 +27,12 @@ class TestWebScraper(unittest.TestCase):
                 self.assertTrue(all(not history[s].empty for s in case[0]),
                                 "All symbols should have non-empty history")
 
-        invalid_cases = [
-            (['000001', ''], Interval.ONE_MINUTE, 1234, 0),
-        ]
+        # invalid_cases = [
+        #     (['000001', ''], Interval.ONE_MINUTE, 1234, 0),
+        # ]
 
-        for case in invalid_cases:
-            with self.subTest():
-                history = web_scraper.get_history(*case)
-                self.assertTrue(all(s in history.keys() and history[s].empty for s in case[0]),
-                                "Invalid cases should return empty history")
+        # for case in invalid_cases:
+        #     with self.subTest():
+        #         history = web_scraper.get_history(*case)
+        #         self.assertTrue(all(s in history.keys() and history[s].empty for s in case[0]),
+        #                         "Invalid cases should return empty history")

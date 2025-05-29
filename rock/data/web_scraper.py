@@ -4,10 +4,8 @@ This module provides a function to retrieve stock related data.
 """
 from collections.abc import Sequence, Mapping
 from pandas import DataFrame
-from efinance import stock, config as ef_config
 from rock.common.types import Interval
-
-ef_config.MAX_CONNECTIONS = 10
+from rock.em import utils as em_utils
 
 INTERVAL_KLT_MAPPING = {
     Interval.ONE_MINUTE: 1,
@@ -40,24 +38,22 @@ def get_history(symboles: Sequence[str],
     end = str(end).replace('-', '') if end is not None else '20500101'
 
     klt = INTERVAL_KLT_MAPPING.get(interval, 101)
-    not_adjusted = stock.get_quote_history(
+    not_adjusted = em_utils.get_quote_history(
         list(symboles),
         start,
         end,
         klt,
         0,
-        None,
         True,
         True
     )
 
-    adjusted = stock.get_quote_history(
+    adjusted = em_utils.get_quote_history(
         list(symboles),
         start,
         end,
         klt,
         1,
-        None,
         True,
         True
     )
