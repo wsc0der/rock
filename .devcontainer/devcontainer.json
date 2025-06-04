@@ -46,10 +46,12 @@
 
 	// Uncomment the next line to run commands after the container is created.
 	// "postCreateCommand": "cat /etc/os-release",
-	"postCreateCommand": "pip install --no-cache-dir ."
-
-
+	"postCreateCommand": "pip install --no-cache-dir .",
 
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "devcontainer"
+
+	"mounts": [
+		"source=${env:HOME}/.rock/config.json,target=/home/devuser/.rock/config.json,type=bind,consistency=cached"
+	]
 }

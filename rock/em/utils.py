@@ -19,7 +19,16 @@ import multitasking
 from tqdm.auto import tqdm
 
 from rock.em.cache import em_cache
+import rock.config as config
 
+multitasking.set_max_threads(8)
+MAX_CONNECTIONS = 10
+
+ADDRESS = f"http://{config.USERNAME}:{config.PASSWORD}@{config.PROXY}:{config.PORT}/"
+proxies={
+    "http": ADDRESS,
+    "https": ADDRESS
+}
 
 EASTMONEY_REQUEST_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; Touch; rv:11.0) like Gecko",
@@ -53,7 +62,6 @@ class CustomedSession(requests.Session):
         return super().request(*args, **kwargs)
 
 
-MAX_CONNECTIONS = 10
 session = CustomedSession()
 adapter = HTTPAdapter(
     pool_connections=MAX_CONNECTIONS, pool_maxsize=MAX_CONNECTIONS, max_retries=5
@@ -171,7 +179,7 @@ def search_quote(
         ("count", f"{max(count, 5)}"),
     )
     try:
-        json_response = session.get(url, params=params).json()
+        json_response = session.get(url, params=params, proxies=proxies).json()
         items = json_response["QuotationCodeTable"]["Data"]
     except json.JSONDecodeError as e:
         raise RuntimeWarning(
@@ -321,7 +329,7 @@ def get_quote_history_single(
     url = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
 
     json_response = session.get(
-        url, headers=EASTMONEY_REQUEST_HEADERS, params=params, verify=True
+        url, headers=EASTMONEY_REQUEST_HEADERS, params=params, verify=True, proxies=proxies
     ).json()
     klines = jsonpath(json_response, "$..klines[:]")
     if not klines:

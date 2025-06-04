@@ -25,7 +25,6 @@ class TestDataService(unittest.TestCase):
 
         if os.path.exists(db.DB_PATH):
             os.remove(db.DB_PATH)
-            os.rmdir(os.path.dirname(db.DB_PATH))
         return super().tearDown()
 
     def test_initialize(self):

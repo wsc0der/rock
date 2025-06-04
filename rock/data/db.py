@@ -9,9 +9,11 @@ from enum import StrEnum
 from datetime import datetime as dt
 from rock.logger import logger
 
+from rock.config import ROOT_DIR
+
 
 DB_NAME = 'rock.db'
-DB_PATH = os.path.expanduser(f'~/.rockdb/{DB_NAME}')
+DB_PATH = ROOT_DIR / DB_NAME
 
 def adapt_datetime_epoch(val):
     """Adapt datetime to Unix timestamp."""

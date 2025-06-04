@@ -25,3 +25,7 @@ RUN usermod --shell /bin/bash $USERNAME
 
 # Switch to the non-root user
 USER $USERNAME
+
+# Copy config.json into the container for the devuser
+RUN mkdir -p /home/devuser/.rock
+RUN chown devuser:devuser /home/devuser/.rock
