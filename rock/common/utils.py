@@ -15,6 +15,10 @@ def get_epoch_date():
     """Return the epoch date in YYYY-MM-DD format."""
     return '1970-01-01'
 
+def format_date(d: datetime) -> str:
+    """Format a datetime object to YYYY-MM-DD."""
+    return d.strftime('%Y-%m-%d')
+
 def compare_dates(date1: str, date2: str) -> int:
     """Compare two dates in YYYY-MM-DD format."""
     d1 = datetime.strptime(date1, '%Y-%m-%d')

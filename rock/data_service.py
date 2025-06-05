@@ -2,12 +2,19 @@
 
 import pkgutil
 import importlib
+from enum import StrEnum
 from typing import Generator
 from types import ModuleType
 from sqlite3 import Row, Error
 from rock.data import db, web_scraper
 from rock import exchange
 from rock.logger import logger
+from rock.common import utils
+
+
+class DBKeys(StrEnum):
+    """Keys for database metadata."""
+    HISTORY_UPDATED_AT = 'history_updated_at'
 
 
 def init_db() -> None:
@@ -56,12 +63,14 @@ def update_securities() -> None:
     logger.info("Securities updated.")
 
 
-def update_histories() -> None:
+def update_histories(inc: bool = False) -> None:
     """Update the historical data in the database."""
-    securities = db.get_all_securities()
     logger.info("Updating historical data...")
+    securities = db.get_all_securities()
+    history_updated_at = db.get_meta(DBKeys.HISTORY_UPDATED_AT)
     histories = web_scraper.get_history(
-        [security['symbol'] for security in securities]
+        [security['symbol'] for security in securities],
+        start = history_updated_at if inc else None
     )
     for security in securities:
         history = histories[security['symbol']]
@@ -80,6 +89,7 @@ def update_histories() -> None:
             ) for row in history.itertuples(index=False)])
         else:
             logger.warning("No history data for %s", security['symbol'])
+    db.insert_meta(DBKeys.HISTORY_UPDATED_AT, utils.get_current_date())
     logger.info("Historical data updated.")
 
 
@@ -98,7 +108,7 @@ def run() -> None:
         init_db()
 
     update_securities()
-    update_histories()
+    update_histories(True)
 
 
 if __name__ == "__main__":

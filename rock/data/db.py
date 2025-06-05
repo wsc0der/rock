@@ -76,6 +76,14 @@ def create_db() -> None:
             )
         ''')
 
+    def create_meta_table():
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+        ''')
+
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     connection = get_connection()
     cursor = connection.cursor()
@@ -83,6 +91,7 @@ def create_db() -> None:
         create_security_table()
         create_exchange_table()
         create_history_table()
+        create_meta_table()
         connection.commit()
         logger.info('Database %s created successfully.', DB_PATH)
     finally:
@@ -162,6 +171,38 @@ def insert_history(security_id: int, date: str, open_price: float, close_price: 
     bulk_insert_history([
         (security_id, date, open_price, close_price, high_price, low_price, adj_close, volume, amount, frequency)
     ])
+
+
+def insert_meta(key: str, value: str) -> None:
+    """Insert meta data into the database."""
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute('''
+            INSERT OR REPLACE INTO meta (key, value)
+            VALUES (?, ?)
+        ''', (key, value))
+        connection.commit()
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def get_meta(key: str) -> str|None:
+    """Get meta data from the database."""
+    connection = get_connection()
+    cursor = connection.cursor()
+    try:
+        cursor.execute('''
+            SELECT value FROM meta WHERE key = ?
+        ''', (key,))
+        result = cursor.fetchone()
+        if result:
+            return result['value']
+        return None
+    finally:
+        cursor.close()
+        connection.close()
 
 
 def bulk_insert_history(history: list[tuple[int, str, float, float, float, float, float, int, int, str]]) -> None:
