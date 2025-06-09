@@ -42,6 +42,8 @@ def get_history(symboles: Sequence[str],
         df.drop(columns=['security_id', 'frequency'], inplace=True)
         # Sort by date
         df.sort_values(by='datetime', inplace=True)
+        # Set datetime as index
+        df.set_index('datetime', inplace=True)
         # Add to result
         result[s] = df
     return result
