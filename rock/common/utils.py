@@ -25,5 +25,9 @@ def compare_dates(date1: str, date2: str) -> int:
     d2 = datetime.strptime(date2, '%Y-%m-%d')
     return (d1 > d2) - (d1 < d2)
 
+def str_to_dt(date_str: str, f: str = '%Y-%m-%d') -> datetime:
+    """Convert a date string in YYYY-MM-DD format to a datetime object."""
+    return datetime.strptime(date_str, f)
+
 if __name__ == '__main__':
     print(sqlite3.sqlite_version)

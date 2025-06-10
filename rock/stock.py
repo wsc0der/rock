@@ -47,3 +47,19 @@ def get_history(symboles: Sequence[str],
         # Add to result
         result[s] = df
     return result
+
+def get_securities() -> Sequence[str]:
+    """
+    Retrieve all securities from the database.
+    Returns:
+        DataFrame: A DataFrame containing all securities.
+    """
+    securities = db.get_all_securities()
+    if securities is None:
+        logger.warning("No securities found")
+        return []
+
+    # Convert to DataFrame
+    df = pd.DataFrame([dict(row) for row in securities])
+
+    return list(df['symbol'].values)
